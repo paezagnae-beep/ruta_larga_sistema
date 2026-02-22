@@ -1,0 +1,266 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Georgia, 'Times New Roman', Times, serif; 
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #F9FAFB;
+    color: #333333;
+    line-height: 1.6;
+    padding-top: 0; 
+}
+
+h1, h2, h3 {
+    color: #333333;
+    font-weight: 700;
+}
+
+a {
+    text-decoration: none;
+    color: #333333;
+    transition: all 0.3s ease-in-out;
+}
+
+a:hover {
+    color: #666666;
+}
+
+header{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 20px 100px; 
+    display: flex;
+    justify-content: space-between ;
+    align-items: center;
+    z-index: 99;
+    background-color: rgba(8, 8, 44, 0.671); 
+    box-shadow: none; 
+    height: auto;
+}
+
+.logo { 
+    font-size: 2em;
+    color: white;
+    user-select: none;
+    margin: 0;
+}
+
+.navigation a {
+    position: relative;
+    font-size: 1.1em;
+    color: white;
+    font-weight: 500;
+    margin-left: 40px; 
+    padding-bottom: 5px;
+}
+
+.navigation a:hover {
+    color: #CCCCCC;
+}
+
+.navigation a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0px; 
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 5px;
+    transform: scaleX(0);
+    transition: transform 0.5s;
+}
+
+.navigation a:hover::after,
+.navigation a.active::after { 
+    transform: scaleX(1);
+}
+
+.services-hero {
+    
+    background-image: url('../img/fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    color: white; 
+    padding: 140px 50px 100px 50px; 
+    text-align: center;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 5px solid #666666;
+}
+
+.services-hero h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    color: white; 
+}
+
+.services-hero p {
+    font-size: 18px;
+    opacity: 0.9;
+    color: white; 
+}
+
+.services-grid-section {
+    padding: 80px 50px;
+    background-color: #F9FAFB;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 42px;
+    margin-bottom: 50px;
+}
+
+.service-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.service-card {
+    background-color: #FFFFFF;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-bottom: 5px solid #E0E0E0;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    border-bottom-color: #666666; 
+}
+
+.service-card ion-icon {
+    font-size: 50px;
+    color: #666666;
+    margin-bottom: 15px;
+}
+
+.service-card h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.service-card p {
+    color: #555555;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.read-more {
+    color: #666666;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.read-more:hover {
+    color: #333333;
+}
+
+.cta-section {
+    background-color: #E0E0E0;
+    padding: 60px 50px;
+    text-align: center;
+}
+
+.cta-section h2 {
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.cta-section p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #555555;
+}
+
+.cta-button {
+    background-color: #3e5e9cb4;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.cta-button:hover {
+    background-color: #333333;
+    transform: scale(1.05);
+}
+
+footer {
+    background-color:rgb(8, 8, 44);;
+    color: #E0E0E0;
+    text-align: center;
+    padding: 25px 0;
+    font-size: 14px;
+}
+
+footer p {
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+footer .social-links a {
+    color: #BBBBBB;
+    margin: 0 15px;
+    font-weight: 500;
+}
+
+footer .social-links a:hover {
+    color: #F0F0F0;
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 15px 20px;
+    }
+    
+    .navigation a {
+        margin-left: 20px;
+    }
+
+    .services-hero {
+        padding: 100px 20px 60px 20px;
+    }
+
+    .services-grid-section {
+        padding: 40px 20px;
+    }
+
+    .section-title {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 600px) {
+    .navigation {
+        display: none;
+    }
+
+    .service-grid-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .cta-section h2 {
+        font-size: 30px;
+    }
+}

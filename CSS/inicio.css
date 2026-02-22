@@ -1,0 +1,335 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #F9FAFB;
+    color: #333333;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    color: #333333;
+    font-weight: 700;
+}
+
+a {
+    text-decoration: none;
+    color: #333333;
+    transition: all 0.3s ease-in-out;
+}
+
+a:hover {
+    color: #666666;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+header{
+    position: absolute ;
+    top: 0;
+    width: 100%;
+    padding: 20px 100px;
+    display: flex;
+    justify-content: space-between ;
+    align-items: center;
+    z-index: 99;
+    background-color: rgba(8, 8, 44, 0.671);
+}
+
+.logo { 
+    font-family: Georgia, 'Times New Roman', Times, serif; 
+    font-size: 2em;
+    color: white;
+    user-select: none;
+    margin: 0;
+}
+
+.navigation a {
+    font-family: Georgia, 'Times New Roman', Times, serif; 
+    position: relative;
+    font-size: 1.1em;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 40px; 
+    padding-bottom: 5px;
+    transition: color 0.3s ease-in-out;
+}
+
+.navigation a:hover {
+    color: #CCCCCC;
+}
+
+.navigation a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0px; 
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 5px;
+    transform: scaleX(0);
+    transition: transform 0.5s;
+}
+
+.navigation a:hover::after {
+    transform: scaleX(1);
+}
+
+.cta-button {
+    font-family: Georgia, 'Times New Roman', Times, serif; 
+    background-color: #666666;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 5px; 
+    font-size: 1em; 
+    font-weight: 600;
+    margin-left: 40px; 
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.cta-button:hover {
+    background-color: #555555;
+    transform: scale(1.05);
+}
+
+.hero {
+    background-image: url('../img/fondo.jpg');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    
+    color: white;
+    padding: 160px 80px 120px 80px; 
+    text-align: center;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero h2 {
+    font-size: 58px;
+    margin-bottom: 20px;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+.hero p {
+    font-size: 22px;
+    margin-bottom: 40px;
+    opacity: 0.95;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.cta-primary {
+    display: inline-block;
+    background-color: #666666;
+    color: white;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    font-size: 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.cta-primary:hover {
+    background-color: #555555;
+    transform: translateY(-3px);
+}
+
+.about-us {
+    background-color: #ffffff; 
+    padding: 80px 50px;
+}
+
+.about-us-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 50px; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+}
+
+.about-text {
+    flex: 1; 
+    max-width: 600px;
+}
+
+.about-text h2 {
+    font-size: 42px;
+    color: #333333;
+    margin-bottom: 20px;
+    border-bottom: 4px solid #E0E0E0; 
+    padding-bottom: 10px;
+}
+
+.about-text p {
+    font-size: 16px;
+    color: #555555;
+    margin-bottom: 25px;
+}
+
+.about-image {
+    flex: 1; 
+    max-width: 600px;
+}
+
+.about-image img {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.cta-secondary {
+    display: inline-block;
+    background-color: transparent;
+    color: #666666;
+    border: 2px solid #666666;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: all 0.3s ease-in-out;
+}
+
+.cta-secondary:hover {
+    background-color: #666666;
+    color: white;
+    transform: translateY(-3px);
+}
+
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 80px 50px;
+    background-color: #E0E0E0; 
+}
+
+.feature-card {
+    width: 320px;
+    padding: 35px;
+    border-radius: 12px;
+    text-align: center;
+    background-color: #fefefe;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+.feature-card h3 {
+    font-size: 24px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.feature-card .icon {
+    font-size: 48px;
+    color: #666666;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #555555;
+    font-size: 16px;
+}
+
+.why-choose-us {
+    background-color: #ffffff; 
+    padding: 80px 50px;
+    text-align: center;
+}
+
+.why-choose-us h2 {
+    font-size: 42px;
+    color: #333333; 
+    margin-bottom: 50px;
+}
+
+.why-grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 30px;
+    max-width: 900px; 
+    margin: 0 auto;
+}
+
+.why-card {
+    background-color: #f0f0f0; 
+    padding: 30px;
+    border-radius: 12px;
+    text-align: left; 
+    transition: all 0.3s ease-in-out;
+    border: 1px solid #e0e0e0;
+}
+
+.why-card:hover {
+    transform: translateY(-10px);
+    background-color: #e9e9e9; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.why-icon {
+    font-size: 36px;
+    color: #666666; 
+    margin-bottom: 15px;
+}
+
+.why-card h3 {
+    font-size: 20px;
+    color: #333333; 
+    margin-bottom: 10px;
+}
+
+.why-card p {
+    font-size: 15px;
+    color: #555555; 
+    line-height: 1.5;
+}
+
+footer {
+    background-color: rgb(8, 8, 44);
+    color: #E0E0E0;
+    text-align: center;
+    padding: 25px 0;
+    font-size: 14px;
+}
+
+footer p {
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+footer .social-links a {
+    color: #BBBBBB;
+    margin: 0 15px;
+    font-weight: 500;
+}
+
+footer .social-links a:hover {
+    color: #F0F0F0;
+}
