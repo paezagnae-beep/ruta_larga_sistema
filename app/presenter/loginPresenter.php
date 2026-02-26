@@ -19,7 +19,7 @@ class LoginPresenter {
                 header("Location: menu.php");
                 exit();
             }
-            return "Credenciales incorrectas";
+            return "Username o contraseña incorrectos";
         }
         return null;
     }
