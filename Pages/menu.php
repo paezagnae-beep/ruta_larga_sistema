@@ -75,49 +75,38 @@ $nombre_final = ucwords($nombre_limpio);
             <p class="text-gray-400 uppercase tracking-[0.25em] text-[10px] font-bold">Gestión de Logística y Transporte Pesado</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
-            <a href="flete.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
-                <div class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-all duration-500">
-                    <i class="ph ph-truck text-3xl text-orange-600 group-hover:text-white"></i>
+            <a href="flete.php" class="group bg-white p-8 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-all duration-500">
+                    <i class="ph ph-truck text-4xl text-orange-600 group-hover:text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Registro Fletes</h3>
-                <p class="text-gray-500 text-xs leading-relaxed">Control de despachos, guías y rastreo de carga.</p>
-                <div class="mt-8 text-orange-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
-                    Entrar <i class="ph ph-arrow-right"></i>
-                </div>
-            </a>
-
-            <a href="clientes.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
-                <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-all duration-500">
-                    <i class="ph ph-users-three text-3xl text-blue-600 group-hover:text-white"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Clientes</h3>
-                <p class="text-gray-500 text-xs leading-relaxed">Base de datos centralizada y facturación.</p>
-                <div class="mt-8 text-blue-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
-                    Entrar <i class="ph ph-arrow-right"></i>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Registro Fletes</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Control de despachos, guías y rastreo de carga.</p>
+                <div class="mt-8 text-orange-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar al módulo <i class="ph ph-arrow-right"></i>
                 </div>
             </a>
 
-            <a href="vehiculo.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+            <a href="clientes.php" class="group bg-white p-8 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-all duration-500">
+                    <i class="ph ph-users-three text-4xl text-blue-600 group-hover:text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Clientes</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Base de datos centralizada y facturación.</p>
+                <div class="mt-8 text-blue-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar al módulo <i class="ph ph-arrow-right"></i>
+                </div>
+            </a>
+
+            <a href="vehiculo.php" class="group bg-white p-8 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
                 <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-600 transition-all duration-500">
-                    <i class="ph ph-car-profile text-3xl text-green-600 group-hover:text-white"></i>
+                    <i class="ph ph-car-profile text-4xl text-green-600 group-hover:text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Flota Vehicular</h3>
-                <p class="text-gray-500 text-xs leading-relaxed">Estado técnico y mantenimientos preventivos.</p>
-                <div class="mt-8 text-green-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
-                    Entrar <i class="ph ph-arrow-right"></i>
-                </div>
-            </a>
-
-            <a href="recuperar.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
-                <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-all duration-500">
-                    <i class="ph ph-key-bold text-3xl text-purple-600 group-hover:text-white"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Recuperar Clave</h3>
-                <p class="text-gray-500 text-xs leading-relaxed">Solicita un enlace para restablecer tu acceso.</p>
-                <div class="mt-8 text-purple-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
-                    Gestionar <i class="ph ph-arrow-right"></i>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Flota Vehicular</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Estado técnico y mantenimientos preventivos.</p>
+                <div class="mt-8 text-green-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar al módulo <i class="ph ph-arrow-right"></i>
                 </div>
             </a>
 

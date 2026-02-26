@@ -1,129 +1,154 @@
 <?php
-// 1. Lógica de rutas y carga del Presenter
-require_once dirname(__DIR__) . "/app/presenter/LoginPresenter.php";
+session_start();
 
-$presenter = new LoginPresenter();
-$mensaje = "";
-$esError = false;
+// 1. SEGURIDAD: Si no hay sesión iniciada, al login
+if (!isset($_SESSION["usuario"])) {
+    header("Location: login.php");
+    exit();
+}
 
-// 3. VALIDACIÓN DE ENVÍO (SERVER-SIDE)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $correo = filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL);
-    $clave = $_POST['clave'] ?? '';
+// 2. CONTROL DE INACTIVIDAD (3 minutos = 180 segundos)
+$timeout = 180; 
 
-    if (empty($correo) || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        $mensaje = "Por favor, ingresa un correo electrónico válido.";
-        $esError = true;
-    } elseif (empty($clave)) {
-        $mensaje = "La contraseña es obligatoria.";
-        $esError = true;
-    } else {
-        // Solo si pasa las validaciones básicas, llamamos al Presenter
-        $mensaje = $presenter->iniciarSesion();
-        if ($mensaje) {
-            $esError = true;
-        }
+if (isset($_SESSION['ultima_actividad'])) {
+    $segundos_inactivo = time() - $_SESSION['ultima_actividad'];
+    
+    if ($segundos_inactivo >= $timeout) {
+        session_unset();
+        session_destroy();
+        header("Location: login.php?mensaje=sesion_caducada");
+        exit();
     }
 }
+$_SESSION['ultima_actividad'] = time();
 
-// 2. LÓGICA DE MENSAJES DUALES (GET)
-if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'sesion_cerrada') {
-    $mensaje = "Has salido del sistema correctamente.";
-    $esError = false;
-}
+/**
+ * 3. PROCESAMIENTO DEL NOMBRE DE USUARIO
+ */
+$usuario_raw = $_SESSION["usuario"];
+$nombre_partido = explode('@', $usuario_raw)[0];
+$nombre_limpio = str_replace(['.', '_', '-'], ' ', $nombre_partido);
+$nombre_final = ucwords($nombre_limpio);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al Sistema | Ruta Larga</title>
+    <title>Panel de Control | Ruta Larga</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         body { font-family: Georgia, 'Times New Roman', Times, serif; }
-        /* Evita el parpadeo del layout antes de cargar Tailwind */
-        [v-cloak] { display: none; }
+        .card-glow:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
-    <header class="fixed top-0 w-full px-10 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.9)] shadow-lg backdrop-blur-sm">
-        <h2 class="text-white text-2xl font-bold tracking-wider">RUTA LARGA</h2>
-        <nav class="hidden md:flex gap-8 text-sm uppercase tracking-widest">
-            <a href="soporte.php" class="text-white hover:text-gray-300 transition-colors">Soporte</a>
+    <header class="fixed top-0 w-full px-10 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.96)] shadow-2xl border-b border-gray-700 backdrop-blur-md">
+        <h2 class="text-white text-2xl font-bold tracking-wider uppercase">Ruta Larga</h2>
+        
+        <nav class="flex items-center gap-6">
+            <div class="hidden lg:flex flex-col items-end border-r border-gray-600 pr-6">
+                <span class="text-gray-400 text-[10px] uppercase tracking-widest">Operador Activo</span>
+                <span class="text-white font-medium italic text-sm"><?= htmlspecialchars($nombre_final) ?></span>
+            </div>
+            
+            <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2">
+                <i class="ph ph-power-bold"></i> Salir
+            </a>
         </nav>
     </header>
 
-    <main class="flex-grow flex items-center justify-center px-4 pt-32 pb-12">
-        <div class="bg-white w-full max-w-md p-10 rounded-2xl shadow-2xl border border-gray-100">
+    <main class="flex-grow pt-32 pb-20 px-6 max-w-7xl mx-auto w-full">
+        
+        <div id="session-alert" class="hidden mb-8 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-700 rounded-lg shadow-md flex items-center justify-between animate-bounce">
+            <div class="flex items-center gap-3">
+                <i class="ph ph-timer text-2xl"></i>
+                <p class="text-sm font-bold uppercase">Aviso: Tu sesión expirará pronto por falta de actividad.</p>
+            </div>
+        </div>
+
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Módulos Administrativos</h1>
+            <div class="h-1.5 w-24 bg-gray-700 mx-auto rounded-full mb-6"></div>
+            <p class="text-gray-400 uppercase tracking-[0.25em] text-[10px] font-bold">Gestión de Logística y Transporte Pesado</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 border-b-4 border-gray-600 inline-block pb-2 italic">Bienvenido</h2>
-                <p class="text-gray-500 mt-4 text-sm uppercase tracking-tighter">Gestión de Flota y Logística</p>
-            </div>
-
-            <?php if(!empty($mensaje)): ?>
-                <div class="mb-6 p-4 border-l-4 shadow-sm rounded flex items-center animate-in fade-in duration-500
-                    <?php echo $esError ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700'; ?>">
-                    
-                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <?php if($esError): ?>
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        <?php else: ?>
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                        <?php endif; ?>
-                    </svg>
-
-                    <span class="font-medium text-sm"><?php echo htmlspecialchars($mensaje); ?></span>
+            <a href="flete.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-all duration-500">
+                    <i class="ph ph-truck text-3xl text-orange-600 group-hover:text-white"></i>
                 </div>
-            <?php endif; ?>
-
-            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" class="space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">Correo Electrónico</label>
-                    <input type="email" name="correo" required 
-                        value="<?php echo isset($_POST['correo']) ? htmlspecialchars($_POST['correo']) : ''; ?>"
-                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:bg-white outline-none transition-all placeholder-gray-300"
-                        placeholder="usuario@rutalarga.com">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Registro Fletes</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">Control de despachos, guías y rastreo de carga.</p>
+                <div class="mt-8 text-orange-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar <i class="ph ph-arrow-right"></i>
                 </div>
+            </a>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">Contraseña</label>
-                    <input type="password" name="clave" required minlength="4"
-                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:bg-white outline-none transition-all placeholder-gray-300"
-                        placeholder="••••••••">
+            <a href="clientes.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-all duration-500">
+                    <i class="ph ph-users-three text-3xl text-blue-600 group-hover:text-white"></i>
                 </div>
-
-                <div class="flex flex-col gap-3 pt-2">
-                    <button type="submit" 
-                        class="w-full bg-[#666666] hover:bg-[#444444] text-white font-bold py-3.5 rounded-lg shadow-lg transform active:scale-95 transition-all duration-300 uppercase tracking-widest text-sm">
-                        Iniciar Sesión
-                    </button>
-
-                    <a href="nuevoregistro1.php" 
-                        class="w-full border-2 border-[#666666] text-[#666666] hover:bg-[#666666] hover:text-white font-bold py-3 rounded-lg text-center transition-all duration-300 uppercase tracking-widest text-sm">
-                        Registrarme
-                    </a>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Clientes</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">Base de datos centralizada y facturación.</p>
+                <div class="mt-8 text-blue-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar <i class="ph ph-arrow-right"></i>
                 </div>
-            </form>
+            </a>
 
-            <div class="mt-8 text-center">
-                <a href="soporte.php" class="text-xs text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest italic">
-                    ¿Problemas con su cuenta? Soporte técnico
-                </a>
-            </div>
+            <a href="vehiculo.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-600 transition-all duration-500">
+                    <i class="ph ph-car-profile text-3xl text-green-600 group-hover:text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Flota Vehicular</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">Estado técnico y mantenimientos preventivos.</p>
+                <div class="mt-8 text-green-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Entrar <i class="ph ph-arrow-right"></i>
+                </div>
+            </a>
+
+            <a href="recuperar.php" class="group bg-white p-6 rounded-[2rem] border border-gray-100 card-glow transition-all duration-500 hover:-translate-y-2">
+                <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-all duration-500">
+                    <i class="ph ph-key text-3xl text-purple-600 group-hover:text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2 italic">Recuperar Clave</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">Solicita un enlace para restablecer tu acceso al sistema.</p>
+                <div class="mt-8 text-purple-600 font-bold text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-4 transition-all">
+                    Gestionar <i class="ph ph-arrow-right"></i>
+                </div>
+            </a>
+
         </div>
     </main>
 
-    <footer class="bg-[rgb(8,8,44)] text-gray-500 py-6 text-center text-[10px] tracking-[0.2em] uppercase">
-        &copy; 2026 RUTA LARGA FURGONES UNIDOS | Logística Segura
+    <footer class="bg-[rgb(8,8,44)] text-gray-500 py-8 text-center text-[10px] tracking-[0.3em] uppercase mt-auto border-t border-gray-800">
+        <p>&copy; 2026 RUTA LARGA | Operaciones Blindadas</p>
     </footer>
 
     <script>
-        // Limpia los parámetros de la URL al recargar para evitar que el mensaje de "Sesión Cerrada" se quede pegado
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.pathname);
+        let tiempoInactividad = 0;
+        const limiteSegundos = 180; 
+
+        const intervalo = setInterval(() => {
+            tiempoInactividad++;
+            if (tiempoInactividad >= (limiteSegundos - 30)) {
+                document.getElementById('session-alert').classList.remove('hidden');
+            }
+            if (tiempoInactividad >= limiteSegundos) {
+                window.location.href = "logout.php?causa=inactividad";
+            }
+        }, 1000);
+
+        function resetearContador() {
+            tiempoInactividad = 0;
+            document.getElementById('session-alert').classList.add('hidden');
         }
+
+        const eventos = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventos.forEach(evt => window.addEventListener(evt, resetearContador));
     </script>
 </body>
 </html>
