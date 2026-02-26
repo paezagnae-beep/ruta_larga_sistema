@@ -1,17 +1,33 @@
 <?php
-// 1. Lógica de rutas blindada para evitar el error "Class not found"
+// 1. Lógica de rutas y carga del Presenter
 require_once dirname(__DIR__) . "/app/presenter/LoginPresenter.php";
 
 $presenter = new LoginPresenter();
-$mensaje = $presenter->iniciarSesion(); // Captura error de login (si existe)
-$esError = false; 
+$mensaje = "";
+$esError = false;
 
-// 2. LÓGICA DE MENSAJES DUALES
-if ($mensaje) {
-    // Si el presenter devuelve texto, es un error de credenciales
-    $esError = true;
-} elseif (isset($_GET['mensaje']) && $_GET['mensaje'] == 'sesion_cerrada') {
-    // Si viene de logout.php, es un mensaje de éxito
+// 3. VALIDACIÓN DE ENVÍO (SERVER-SIDE)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $correo = filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL);
+    $clave = $_POST['clave'] ?? '';
+
+    if (empty($correo) || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        $mensaje = "Por favor, ingresa un correo electrónico válido.";
+        $esError = true;
+    } elseif (empty($clave)) {
+        $mensaje = "La contraseña es obligatoria.";
+        $esError = true;
+    } else {
+        // Solo si pasa las validaciones básicas, llamamos al Presenter
+        $mensaje = $presenter->iniciarSesion();
+        if ($mensaje) {
+            $esError = true;
+        }
+    }
+}
+
+// 2. LÓGICA DE MENSAJES DUALES (GET)
+if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'sesion_cerrada') {
     $mensaje = "Has salido del sistema correctamente.";
     $esError = false;
 }
@@ -24,13 +40,14 @@ if ($mensaje) {
     <title>Acceso al Sistema | Ruta Larga</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Aplicamos tu tipografía Georgia del diseño original */
         body { font-family: Georgia, 'Times New Roman', Times, serif; }
+        /* Evita el parpadeo del layout antes de cargar Tailwind */
+        [v-cloak] { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
-    <header class="fixed top-0 w-full px-10 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.9)] shadow-lg">
+    <header class="fixed top-0 w-full px-10 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.9)] shadow-lg backdrop-blur-sm">
         <h2 class="text-white text-2xl font-bold tracking-wider">RUTA LARGA</h2>
         <nav class="hidden md:flex gap-8 text-sm uppercase tracking-widest">
             <a href="soporte.php" class="text-white hover:text-gray-300 transition-colors">Soporte</a>
@@ -45,8 +62,8 @@ if ($mensaje) {
                 <p class="text-gray-500 mt-4 text-sm uppercase tracking-tighter">Gestión de Flota y Logística</p>
             </div>
 
-            <?php if($mensaje): ?>
-                <div class="mb-6 p-4 border-l-4 shadow-sm rounded flex items-center animate-pulse
+            <?php if(!empty($mensaje)): ?>
+                <div class="mb-6 p-4 border-l-4 shadow-sm rounded flex items-center animate-in fade-in duration-500
                     <?php echo $esError ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700'; ?>">
                     
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -57,28 +74,29 @@ if ($mensaje) {
                         <?php endif; ?>
                     </svg>
 
-                    <span class="font-medium text-sm"><?php echo $mensaje; ?></span>
+                    <span class="font-medium text-sm"><?php echo htmlspecialchars($mensaje); ?></span>
                 </div>
             <?php endif; ?>
 
-            <form action="" method="post" class="space-y-6">
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" class="space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">Correo Electrónico</label>
                     <input type="email" name="correo" required 
+                        value="<?php echo isset($_POST['correo']) ? htmlspecialchars($_POST['correo']) : ''; ?>"
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:bg-white outline-none transition-all placeholder-gray-300"
                         placeholder="usuario@rutalarga.com">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">Contraseña</label>
-                    <input type="password" name="clave" required 
+                    <input type="password" name="clave" required minlength="4"
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:bg-white outline-none transition-all placeholder-gray-300"
                         placeholder="••••••••">
                 </div>
 
                 <div class="flex flex-col gap-3 pt-2">
                     <button type="submit" 
-                        class="w-full bg-[#666666] hover:bg-[#444444] text-white font-bold py-3.5 rounded-lg shadow-lg transform hover:-translate-y-1 transition-all duration-300 uppercase tracking-widest text-sm">
+                        class="w-full bg-[#666666] hover:bg-[#444444] text-white font-bold py-3.5 rounded-lg shadow-lg transform active:scale-95 transition-all duration-300 uppercase tracking-widest text-sm">
                         Iniciar Sesión
                     </button>
 
@@ -101,5 +119,11 @@ if ($mensaje) {
         &copy; 2026 RUTA LARGA FURGONES UNIDOS | Logística Segura
     </footer>
 
+    <script>
+        // Limpia los parámetros de la URL al recargar para evitar que el mensaje de "Sesión Cerrada" se quede pegado
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+    </script>
 </body>
 </html>
