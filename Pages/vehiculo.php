@@ -1,192 +1,241 @@
 <?php
+session_start();
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+
+// 1. SEGURIDAD E INACTIVIDAD
+$timeout = 600;
+if (!isset($_SESSION["usuario"])) { header("Location: login.php"); exit(); }
+if (isset($_SESSION['ultima_actividad']) && (time() - $_SESSION['ultima_actividad'] > $timeout)) {
+    session_unset(); session_destroy();
+    header("Location: login.php?mensaje=sesion_caducada");
+    exit();
+}
+$_SESSION['ultima_actividad'] = time();
+
 class Conexion {
-    private $servidor = "localhost";
-    private $usuario = "root";
-    private $clave = "";
-    private $bd = "proyecto";
     protected $conexion;
-
     public function __construct() {
-        $this->conectar();
-    }
-
-    protected function conectar() {
-        $this->conexion = new mysqli($this->servidor, $this->usuario, $this->clave, $this->bd);
-        if ($this->conexion->connect_error) {
-            die("Error de conexión: " . $this->conexion->connect_error);
-        }
+        $this->conexion = new mysqli("localhost", "root", "", "proyecto");
+        $this->conexion->set_charset("utf8mb4");
     }
 }
 
-class Cliente extends Conexion {
-    private $id;
-    private $rif;
-    private $nombre;
-    private $telefono;
+class Vehiculo extends Conexion {
+    private $id, $placa, $modelo, $marca;
 
-    public function __construct() { parent::__construct(); }
+    public function setId($v) { $this->id = intval($v); }
+    public function setPlaca($v) { $this->placa = strtoupper(substr(trim($v), 0, 10)); }
+    public function setModelo($v) { $this->modelo = substr(trim($v), 0, 40); }
+    public function setMarca($v) { $this->marca = substr(trim($v), 0, 20); }
 
-    public function setId($v) { $this->id = $v; }
-    public function setRif($v) { $this->rif = $v; }
-    public function setNombre($v) { $this->nombre = $v; }
-    public function setTelefono($v) { $this->telefono = $v; }
-
-    public function listar() {
-        return $this->conexion->query("SELECT * FROM clientes");
-    }
-
+    public function listar() { return $this->conexion->query("SELECT * FROM vehiculos ORDER BY ID_vehiculo DESC"); }
+    
     public function insertar() {
-        $sql = "INSERT INTO clientes (RIF_cedula, nombre, telefono) VALUES ('$this->rif', '$this->nombre', '$this->telefono')";
-        return $this->conexion->query($sql);
+        $stmt = $this->conexion->prepare("INSERT INTO vehiculos (placa, modelo, marca) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $this->placa, $this->modelo, $this->marca);
+        return $stmt->execute();
     }
-
-    // MÉTODO PARA ACTUALIZAR
+    
     public function modificar() {
-        $sql = "UPDATE clientes SET RIF_cedula='$this->rif', nombre='$this->nombre', telefono='$this->telefono' WHERE ID_cliente=$this->id";
-        return $this->conexion->query($sql);
+        $stmt = $this->conexion->prepare("UPDATE vehiculos SET placa=?, modelo=?, marca=? WHERE ID_vehiculo=?");
+        $stmt->bind_param("sssi", $this->placa, $this->modelo, $this->marca, $this->id);
+        return $stmt->execute();
     }
-
-    public function eliminar($id_recibido) {
-        return $this->conexion->query("DELETE FROM clientes WHERE ID_cliente = $id_recibido");
+    
+    public function eliminar($id) {
+        $stmt = $this->conexion->prepare("DELETE FROM vehiculos WHERE ID_vehiculo = ?");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
     }
 }
 
-$cliente = new Cliente();
+$vehiculoObj = new Vehiculo();
 
-// PROCESAR REGISTRO
-if (isset($_POST['registrar'])) {
-    $cliente->setRif($_POST['RIF_cedula']);
-    $cliente->setNombre($_POST['nombre']);
-    $cliente->setTelefono($_POST['telefono']);
-    $cliente->insertar();
-    header("Location: " . $_SERVER['PHP_SELF']);
+// PROCESAMIENTO
+if (isset($_POST['registrar']) || isset($_POST['editar'])) {
+    $vehiculoObj->setPlaca($_POST['placa']);
+    $vehiculoObj->setModelo($_POST['modelo']);
+    $vehiculoObj->setMarca($_POST['marca']);
+
+    if (isset($_POST['registrar'])) {
+        $vehiculoObj->insertar();
+        header("Location: " . $_SERVER['PHP_SELF'] . "?status=reg");
+    } else {
+        $vehiculoObj->setId($_POST['ID_vehiculo']);
+        $vehiculoObj->modificar();
+        header("Location: " . $_SERVER['PHP_SELF'] . "?status=edit");
+    }
+    exit();
 }
 
-// PROCESAR EDICIÓN
-if (isset($_POST['editar'])) {
-    $cliente->setId($_POST['ID_cliente']);
-    $cliente->setRif($_POST['RIF_cedula']);
-    $cliente->setNombre($_POST['nombre']);
-    $cliente->setTelefono($_POST['telefono']);
-    $cliente->modificar();
-    header("Location: " . $_SERVER['PHP_SELF']);
-}
-
-// PROCESAR ELIMINACIÓN
 if (isset($_GET['delete'])) {
-    $cliente->eliminar($_GET['delete']);
-    header("Location: " . $_SERVER['PHP_SELF']);
+    $vehiculoObj->eliminar(intval($_GET['delete']));
+    header("Location: " . $_SERVER['PHP_SELF'] . "?status=del");
+    exit();
 }
 
-$result = $cliente->listar();
+$result = $vehiculoObj->listar();
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Clientes</title>
+    <title>Vehículos | Ruta Larga</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
-
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+        .navbar-custom { background-color: #08082c; }
+        .modal-header { background-color: #08082c; color: white; }
+        .placa-badge { background: #fff3e0; color: #e65100; font-weight: bold; border: 1px solid #ffe0b2; font-family: monospace; letter-spacing: 1px; }
+    </style>
 </head>
 <body>
 
-<div class="container mt-4">
-    <h3 class="text-center mb-4">Listado de Clientes</h3>
-    
-    <div class="mb-3 d-flex justify-content-between">
-        <a href="menu.php" class="text-blue-600 hover:underline">← Volver al Menú</a>
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modalRegistro">
-            + Nuevo Cliente
-        </button>
+<nav class="navbar navbar-dark navbar-custom mb-4 shadow">
+    <div class="container">
+        <span class="navbar-brand font-weight-bold">RUTA LARGA - VEHÍCULOS</span>
+        <a href="menu.php" class="btn btn-outline-light btn-sm">Menú Principal</a>
+    </div>
+</nav>
+
+<div class="container bg-white p-4 shadow rounded">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Listado de Flota</h4>
+        <button class="btn btn-success px-4" data-toggle="modal" data-target="#modalRegistro">+ Nuevo Vehículo</button>
     </div>
 
-    <table id="example" class="table table-striped table-bordered">
+    <table id="tablaVehiculos" class="table table-striped table-bordered w-100">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>RIF / Cédula</th>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Acciones</th>
+                <th>Placa</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th class="text-center">Acciones</th>
             </tr>
         </thead>
         <tbody>
-        <?php while ($fila = $result->fetch_assoc()): ?>
+            <?php while ($fila = $result->fetch_assoc()): ?>
             <tr>
-                <td><?= $fila['ID_cliente'] ?></td>
-                <td><?= $fila['RIF_cedula'] ?></td>
-                <td><?= $fila['nombre'] ?></td>
-                <td><?= $fila['telefono'] ?></td>
-                <td>
+                <td><span class="badge placa-badge p-2 text-uppercase"><?= htmlspecialchars($fila['placa']) ?></span></td>
+                <td class="font-weight-bold"><?= htmlspecialchars($fila['marca']) ?></td>
+                <td><?= htmlspecialchars($fila['modelo']) ?></td>
+                <td class="text-center">
                     <button class="btn btn-info btn-sm btnEditar" 
-                            data-id="<?= $fila['ID_cliente'] ?>"
-                            data-rif="<?= $fila['RIF_cedula'] ?>"
-                            data-nombre="<?= $fila['nombre'] ?>"
-                            data-tel="<?= $fila['telefono'] ?>"
+                            data-id="<?= $fila['ID_vehiculo'] ?>"
+                            data-placa="<?= htmlspecialchars($fila['placa']) ?>"
+                            data-marca="<?= htmlspecialchars($fila['marca']) ?>"
+                            data-modelo="<?= htmlspecialchars($fila['modelo']) ?>"
                             data-toggle="modal" data-target="#modalEditar">Editar</button>
-
-                    <a href="?delete=<?= $fila['ID_cliente'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Desea eliminar este registro?')">Eliminar</a>
+                    <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<?= $fila['ID_vehiculo'] ?>, '<?= $fila['placa'] ?>')">Borrar</button>
                 </td>
             </tr>
-        <?php endwhile; ?>
+            <?php endwhile; ?>
         </tbody>
     </table>
 </div>
 
-<div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Registrar Cliente</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-      <form action="" method="POST">
-          <div class="modal-body">
-              <div class="form-group"><label>RIF / Cédula</label><input type="text" name="RIF_cedula" class="form-control" required></div>
-              <div class="form-group"><label>Nombre</label><input type="text" name="nombre" class="form-control" required></div>
-              <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" class="form-control" required></div>
-          </div>
-          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="submit" name="registrar" class="btn btn-primary">Guardar Datos</button></div>
-      </form>
+<div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <form method="POST">
+                <div class="modal-header"><h5>Registrar Vehículo</h5></div>
+                <div class="modal-body p-4">
+                    <div class="form-group">
+                        <label>Placa</label>
+                        <input type="text" name="placa" class="form-control text-uppercase" placeholder="ABC-123" required maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Marca</label>
+                        <select name="marca" class="form-control" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Iveco">Iveco</option>
+                            <option value="Chevrolet">Chevrolet</option>
+                            <option value="Ford">Ford</option>
+                            <option value="Mack">Mack</option>
+                            <option value="Kenworth">Kenworth</option>
+                            <option value="Internacional">Internacional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <input type="text" name="modelo" class="form-control" placeholder="Ej: F-350" required maxlength="40">
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" name="registrar" class="btn btn-success btn-block">Guardar Vehículo</button></div>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
 
-<div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Editar Cliente</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-      <form action="" method="POST">
-          <div class="modal-body">
-              <input type="hidden" name="ID_cliente" id="edit_id">
-              <div class="form-group"><label>RIF / Cédula</label><input type="text" name="RIF_cedula" id="edit_rif" class="form-control" required></div>
-              <div class="form-group"><label>Nombre</label><input type="text" name="nombre" id="edit_nombre" class="form-control" required></div>
-              <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" id="edit_telefono" class="form-control" required></div>
-          </div>
-          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="submit" name="editar" class="btn btn-info">Actualizar Datos</button></div>
-      </form>
+<div class="modal fade" id="modalEditar" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <form method="POST">
+                <div class="modal-header"><h5>Editar Vehículo</h5></div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="ID_vehiculo" id="edit_id">
+                    <div class="form-group">
+                        <label>Placa</label>
+                        <input type="text" name="placa" id="edit_placa" class="form-control text-uppercase" required maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Marca</label>
+                        <select name="marca" id="edit_marca" class="form-control" required>
+                            <option value="Iveco">Iveco</option>
+                            <option value="Chevrolet">Chevrolet</option>
+                            <option value="Ford">Ford</option>
+                            <option value="Mack">Mack</option>
+                            <option value="Kenworth">Kenworth</option>
+                            <option value="Internacional">Internacional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <input type="text" name="modelo" id="edit_modelo" class="form-control" required maxlength="40">
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" name="editar" class="btn btn-info btn-block">Actualizar</button></div>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 $(document).ready(function() {
-    $('#example').DataTable({
-        language: { "sSearch": "Buscar:", "sLengthMenu": "Mostrar _MENU_ registros", "oPaginate": { "sNext": "Sig", "sPrevious": "Ant" } }
-    });
+    $('#tablaVehiculos').DataTable({ language: { "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" } });
 
-    // SCRIPT PARA PASAR DATOS AL MODAL DE EDICIÓN
     $('.btnEditar').on('click', function() {
         $('#edit_id').val($(this).data('id'));
-        $('#edit_rif').val($(this).data('rif'));
-        $('#edit_nombre').val($(this).data('nombre'));
-        $('#edit_telefono').val($(this).data('tel'));
+        $('#edit_placa').val($(this).data('placa'));
+        $('#edit_marca').val($(this).data('marca'));
+        $('#edit_modelo').val($(this).data('modelo'));
     });
+
+    const status = new URLSearchParams(window.location.search).get('status');
+    if(status === 'reg') Swal.fire({icon:'success', title:'Vehículo Registrado', showConfirmButton:false, timer:1500});
+    if(status === 'edit') Swal.fire({icon:'info', title:'Vehículo Actualizado', showConfirmButton:false, timer:1500});
+    if(status === 'del') Swal.fire({icon:'error', title:'Vehículo Eliminado', showConfirmButton:false, timer:1500});
 });
+
+function confirmarEliminar(id, placa) {
+    Swal.fire({
+        title: '¿Eliminar vehículo ' + placa + '?',
+        text: "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Sí, borrar'
+    }).then((result) => { if (result.isConfirmed) window.location.href = `?delete=${id}`; });
+}
 </script>
 </body>
 </html>

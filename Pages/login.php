@@ -61,7 +61,7 @@ if ($mensaje) {
                 </div>
             <?php endif; ?>
 
-            <form action="" method="post" class="space-y-6">
+            <form action="" method="post" class="space-y-5">
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">Correo Electrónico</label>
                     <input type="email" name="correo" required 
@@ -74,9 +74,15 @@ if ($mensaje) {
                     <input type="password" name="clave" required 
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-400 focus:bg-white outline-none transition-all placeholder-gray-300"
                         placeholder="••••••••">
+                    
+                    <div class="text-right mt-2">
+                        <a href="recuperar_clave.php" class="text-[10px] text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest italic">
+                            ¿Olvidó su contraseña?
+                        </a>
+                    </div>
                 </div>
 
-                <div class="flex flex-col gap-3 pt-2">
+                <div class="flex flex-col gap-3 pt-4">
                     <button type="submit" 
                         class="w-full bg-[#666666] hover:bg-[#444444] text-white font-bold py-3.5 rounded-lg shadow-lg transform hover:-translate-y-1 transition-all duration-300 uppercase tracking-widest text-sm">
                         Iniciar Sesión
@@ -89,7 +95,7 @@ if ($mensaje) {
                 </div>
             </form>
 
-            <div class="mt-8 text-center">
+            <div class="mt-8 text-center border-t border-gray-100 pt-6">
                 <a href="soporte.php" class="text-xs text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest italic">
                     ¿Problemas con su cuenta? Soporte técnico
                 </a>
