@@ -194,15 +194,9 @@ $result = $choferObj->listar();
                         <input type="text" name="nombre" class="form-control" required maxlength="40">
                     </div>
                     <div class="form-group">
-                        <label>Teléfono</label>
-                        <div class="input-group">
-                            <select name="operadora" class="form-control col-4">
-                                <option value="0414">0414</option><option value="0424">0424</option>
-                                <option value="0416">0416</option><option value="0426">0426</option>
-                                <option value="0212">0212</option>
-                            </select>
-                            <input type="text" name="telefono_num" class="form-control" placeholder="1234567" required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                        </div>
+                        <label>Teléfono (11 dígitos)</label>
+                        <input type="text" name="telefono" class="form-control" placeholder="04141234567" required 
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
                     </div>
                 </div>
                 <div class="modal-footer"><button type="submit" name="registrar" class="btn btn-success btn-block">Guardar Chofer</button></div>
@@ -232,8 +226,9 @@ $result = $choferObj->listar();
                         <input type="text" name="nombre" id="edit_nombre" class="form-control" required maxlength="40">
                     </div>
                     <div class="form-group">
-                        <label>Teléfono (Completo)</label>
-                        <input type="text" name="telefono" id="edit_tel" class="form-control" placeholder="04141234567" required maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <label>Teléfono</label>
+                        <input type="text" name="telefono" id="edit_tel" class="form-control" required 
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
                     </div>
                 </div>
                 <div class="modal-footer"><button type="submit" name="editar" class="btn btn-info btn-block">Actualizar Chofer</button></div>
