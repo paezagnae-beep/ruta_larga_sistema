@@ -188,8 +188,10 @@ $result = $clienteObj->listar();
                         <label>Teléfono</label>
                         <div class="input-group">
                             <select name="operadora" class="form-control col-4">
-                                <option value="0414">0414</option><option value="0424">0424</option>
-                                <option value="0412">0412</option><option value="0416">0416</option>
+                                <option value="0414">0414</option>
+                                <option value="0424">0424</option>
+                                <option value="0412">0412</option>
+                                <option value="0416">0416</option>
                                 <option value="0426">0426</option>
                             </select>
                             <input type="text" name="telefono_num" class="form-control" placeholder="1234567" required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
