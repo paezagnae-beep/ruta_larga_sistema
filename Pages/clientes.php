@@ -212,32 +212,45 @@ $result = $clienteObj->listar();
         </table>
     </div>
 
-<div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0">
-            <form method="POST">
-                <div class="modal-header"><h5>Registrar Cliente</h5></div>
-                <div class="modal-body p-4">
-                    <div class="form-group">
-                        <label>Identificación</label>
-                        <div class="input-group">
-                            <select name="tipo_doc" class="form-control col-3"><option value="V">V-</option><option value="J">J-</option><option value="E">E-</option><option value="G">G-</option></select>
-                            <input type="text" name="RIF_cedula" class="form-control" placeholder="Número" required>
+    <div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0">
+                <form method="POST">
+                    <div class="modal-header">
+                        <h5>Registrar Cliente</h5>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="form-group">
+                            <label>Identificación</label>
+                            <div class="input-group">
+                                <select name="tipo_doc" class="form-control col-3">
+                                    <option value="V">V-</option>
+                                    <option value="J">J-</option>
+                                    <option value="E">E-</option>
+                                    <option value="G">G-</option>
+                                </select>
+                                <input type="text" name="RIF_cedula" class="form-control" placeholder="Número" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control" required maxlength="40">
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <div class="input-group">
-                            <select name="operadora" class="form-control col-4">
-                                <option value="0414">0414</option><option value="0424">0424</option>
-                                <option value="0412">0412</option><option value="0416">0416</option>
-                                <option value="0426">0426</option>
-                            </select>
-                            <input type="text" name="telefono_num" class="form-control" placeholder="1234567" required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control" required maxlength="40">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <div class="input-group">
+                                <select name="operadora" class="form-control col-4">
+                                    <option value="0414">0414</option>
+                                    <option value="0424">0424</option>
+                                    <option value="0212">0212</option>
+                                    <option value="0412">0412</option>
+                                    <option value="0422">0422</option>
+                                    <option value="0416">0416</option>
+                                    <option value="0426">0426</option>
+                                </select>
+                                <input type="text" name="telefono_num" class="form-control" placeholder="1234567"
+                                    required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer"><button type="submit" name="registrar"
