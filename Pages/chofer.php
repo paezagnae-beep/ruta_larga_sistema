@@ -187,6 +187,15 @@ $result = $choferObj->listar();
                     </div>
                     <div class="form-group">
                         <label>Teléfono (11 dígitos)</label>
+                        <select name="operadora" class="form-control col-4">
+                                    <option value="0414">0414</option>
+                                    <option value="0424">0424</option>
+                                    <option value="0212">0212</option>
+                                    <option value="0412">0412</option>
+                                    <option value="0422">0422</option>
+                                    <option value="0416">0416</option>
+                                    <option value="0426">0426</option>
+                                </select>
                         <input type="text" name="telefono" class="form-control" placeholder="04141234567" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
                     </div>
@@ -219,6 +228,15 @@ $result = $choferObj->listar();
                     </div>
                     <div class="form-group">
                         <label>Teléfono</label>
+                        <select name="operadora" class="form-control col-4">
+                                    <option value="0414">0414</option>
+                                    <option value="0424">0424</option>
+                                    <option value="0212">0212</option>
+                                    <option value="0412">0412</option>
+                                    <option value="0422">0422</option>
+                                    <option value="0416">0416</option>
+                                    <option value="0426">0426</option>
+                                </select>
                         <input type="text" name="telefono" id="edit_tel" class="form-control" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
                     </div>
