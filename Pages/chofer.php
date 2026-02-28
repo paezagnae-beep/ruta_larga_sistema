@@ -1,6 +1,5 @@
 <?php
 session_start();
-// Reporte de errores para desarrollo
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 // 1. SEGURIDAD E INACTIVIDAD
@@ -22,7 +21,6 @@ $_SESSION['ultima_actividad'] = time();
 class Conexion {
     protected $conexion;
     public function __construct() {
-        // Ajusta los parámetros de tu BD aquí si es necesario
         $this->conexion = new mysqli("localhost", "root", "", "proyecto");
         $this->conexion->set_charset("utf8mb4");
         if ($this->conexion->connect_error) {
@@ -72,14 +70,18 @@ if (isset($_POST['registrar']) || isset($_POST['editar'])) {
     $rif_final = $tipo . $num_rif;
     $nombre = trim($_POST['nombre']);
     
-    // Unificamos el teléfono: operadora (4 dígitos) + número (7 dígitos)
-    $telf = ($_POST['operadora'] ?? '') . ($_POST['telefono_num'] ?? '');
+    // Captura de teléfono (unión de operadora + número o campo único en edición)
+    if (isset($_POST['operadora'])) {
+        $telf = $_POST['operadora'] . $_POST['telefono_num'];
+    } else {
+        $telf = $_POST['telefono'];
+    }
     $telf = preg_replace('/[^0-9]/', '', $telf); 
 
     if (strlen($num_rif) < 6) {
         $msg_js = "swalError('El documento es demasiado corto.');";
     } elseif (strlen($telf) != 11) {
-        $msg_js = "swalError('El teléfono debe tener 11 dígitos.');";
+        $msg_js = "swalError('El teléfono debe tener exactamente 11 dígitos.');";
     } else {
         $choferObj->setRif($rif_final);
         $choferObj->setNombre($nombre);
@@ -103,7 +105,6 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Obtenemos los datos para la tabla
 $result = $choferObj->listar();
 ?>
 
@@ -194,9 +195,19 @@ $result = $choferObj->listar();
                         <input type="text" name="nombre" class="form-control" required maxlength="40">
                     </div>
                     <div class="form-group">
-                        <label>Teléfono (11 dígitos)</label>
-                        <input type="text" name="telefono" class="form-control" placeholder="04141234567" required 
-                               oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
+                        <label>Teléfono</label>
+                        <div class="input-group">
+                            <select name="operadora" class="form-control col-4" required>
+                                <option value="0414">0414</option>
+                                <option value="0424">0424</option>
+                                <option value="0416">0416</option>
+                                <option value="0426">0426</option>
+                                <option value="0412">0412</option>
+                                <option value="0422">0422</option> <option value="0212">0212</option>
+                            </select>
+                            <input type="text" name="telefono_num" class="form-control" placeholder="1234567" required 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 7);">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer"><button type="submit" name="registrar" class="btn btn-success btn-block">Guardar Chofer</button></div>
@@ -226,7 +237,7 @@ $result = $choferObj->listar();
                         <input type="text" name="nombre" id="edit_nombre" class="form-control" required maxlength="40">
                     </div>
                     <div class="form-group">
-                        <label>Teléfono</label>
+                        <label>Teléfono (11 dígitos)</label>
                         <input type="text" name="telefono" id="edit_tel" class="form-control" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
                     </div>
@@ -263,7 +274,6 @@ $(document).ready(function() {
     if(status === 'edit') Swal.fire({icon:'info', title:'Datos Actualizados', showConfirmButton:false, timer:1500});
     if(status === 'del') Swal.fire({icon:'error', title:'Chofer Eliminado', showConfirmButton:false, timer:1500});
     
-    // Inyectar alertas JS desde PHP si existen
     <?= $msg_js ?>
 });
 
