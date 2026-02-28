@@ -72,189 +72,195 @@ $result = $objInv->listar();
 <head>
     <meta charset="utf-8">
     <title>Inventario | Ruta Larga</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
     <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
     <style>
-        /* Forzamos Georgia en TODO el documento */
-        * { font-family: 'Georgia', serif !important; }
-        
-        body { background-color: #f3f4f6; }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #08082c !important; 
-            color: white !important; 
-            border: none; 
-            border-radius: 8px;
-        }
-
-        /* Estilo específico para los inputs del modal */
-        input, textarea {
-            background-color: #f9fafb !important;
-            border: 1px solid #e5e7eb !important;
-        }
-    </style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+    .navbar-custom { background-color: #08082c; }
+    .modal-header { background-color: #08082c; color: white; }
+    .badge-rif { background: #e8f5e9; color: #2e7d32; font-weight: bold; border: 1px solid #c8e6c9; }
+</style>
+    <style>
+    body { 
+        font-family: Georgia, 'Times New Roman', Times, serif; 
+        /* Configuración de la imagen de fondo */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+    /* Glassmorphism para las tarjetas si prefieres un estilo más moderno */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+    }
+</style>
 </head>
-<body class="text-gray-800">
+<body>
 
-<nav class="bg-[#08082c] text-white p-4 shadow-xl">
-    <div class="container mx-auto flex justify-between items-center">
-        <span class="text-xl font-bold italic tracking-wider">RUTA LARGA - INVENTARIO</span>
-        <a href="menu.php" class="border border-white/30 px-4 py-1 rounded-lg hover:bg-white/10 transition text-sm">Menú Principal</a>
+<nav class="navbar navbar-dark navbar-custom mb-4 shadow">
+    <div class="container">
+        <span class="navbar-brand font-weight-bold">RUTA LARGA - INVENTARIO</span>
+        <a href="menu.php" class="btn btn-outline-light btn-sm">Menú Principal</a>
     </div>
 </nav>
 
-<div class="container mx-auto mt-8 px-4 pb-12">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="text-3xl font-bold italic text-gray-700">Control de Repuestos</h2>
-        <button onclick="openModal('modalRegistro')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg transition transform hover:scale-105">
-            + Nuevo Artículo
-        </button>
+<div class="container bg-white p-4 shadow rounded">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Control de Repuestos</h4>
+        <button class="btn btn-success px-4" data-toggle="modal" data-target="#modalRegistro">+ Nuevo Artículo</button>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-2xl border border-gray-100">
-        <table id="tablaInventario" class="w-full text-left border-collapse">
-            <thead>
-                <tr class="text-gray-400 uppercase text-xs tracking-widest border-b">
-                    <th class="p-4">Código</th>
-                    <th class="p-4">Producto</th>
-                    <th class="p-4">Stock</th>
-                    <th class="p-4">Precio Unit.</th>
-                    <th class="p-4 text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                <?php while ($fila = $result->fetch_assoc()): ?>
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="p-4 font-mono font-bold text-blue-900"><?= htmlspecialchars($fila['codigo']) ?></td>
-                    <td class="p-4">
-                        <div class="font-bold text-gray-800"><?= htmlspecialchars($fila['nombre']) ?></div>
-                        <div class="text-xs text-gray-500 italic"><?= htmlspecialchars($fila['descripcion']) ?></div>
-                    </td>
-                    <td class="p-4">
-                        <span class="px-3 py-1 rounded-full font-bold border <?= ($fila['cantidad'] > 5) ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100' ?>">
-                            <?= $fila['cantidad'] ?> unid.
-                        </span>
-                    </td>
-                    <td class="p-4 font-bold text-gray-700">$<?= number_format($fila['precio_unidad'], 2) ?></td>
-                    <td class="p-4 text-center">
-                        <div class="flex justify-center gap-2">
-                            <button onclick='editarItem(<?= json_encode($fila) ?>)' class="text-blue-600 hover:bg-blue-100 p-2 rounded-lg transition">
-                                Editar
-                            </button>
-                            <button onclick="confirmarEliminar(<?= $fila['id_producto'] ?>, '<?= $fila['nombre'] ?>')" class="text-red-600 hover:bg-red-100 p-2 rounded-lg transition">
-                                Borrar
-                            </button>
+    <table id="tablaInventario" class="table table-striped table-bordered w-100">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Producto / Descripción</th>
+                <th>Stock</th>
+                <th>Precio Unit.</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($fila = $result->fetch_assoc()): ?>
+            <tr>
+                <td class="font-weight-bold text-primary"><?= htmlspecialchars($fila['codigo']) ?></td>
+                <td>
+                    <div class="font-weight-bold"><?= htmlspecialchars($fila['nombre']) ?></div>
+                    <small class="text-muted italic"><?= htmlspecialchars($fila['descripcion']) ?></small>
+                </td>
+                <td>
+                    <?php if($fila['cantidad'] > 5): ?>
+                        <span class="badge badge-pill badge-success p-2">In Stock: <?= $fila['cantidad'] ?></span>
+                    <?php else: ?>
+                        <span class="badge badge-pill badge-danger p-2">Bajo: <?= $fila['cantidad'] ?></span>
+                    <?php endif; ?>
+                </td>
+                <td class="text-precio">$<?= number_format($fila['precio_unidad'], 2) ?></td>
+                <td class="text-center">
+                    <button class="btn btn-info btn-sm btnEditar" 
+                            data-id="<?= $fila['id_producto'] ?>"
+                            data-cod="<?= htmlspecialchars($fila['codigo']) ?>"
+                            data-nom="<?= htmlspecialchars($fila['nombre']) ?>"
+                            data-des="<?= htmlspecialchars($fila['descripcion']) ?>"
+                            data-can="<?= $fila['cantidad'] ?>"
+                            data-pre="<?= $fila['precio_unidad'] ?>"
+                            data-toggle="modal" data-target="#modalEditar">Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<?= $fila['id_producto'] ?>, '<?= $fila['nombre'] ?>')">Borrar</button>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <form method="POST">
+                <div class="modal-header"><h5>Registrar Producto</h5></div>
+                <div class="modal-body p-4">
+                    <div class="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Código</label>
+                            <input type="text" name="codigo" class="form-control" required>
                         </div>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="modalRegistro" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 backdrop-blur-sm px-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
-        <div class="bg-[#08082c] p-6 text-white flex justify-between items-center">
-            <h3 class="font-bold italic text-xl text-white uppercase">Registrar Producto</h3>
-            <button onclick="closeModal('modalRegistro')" class="text-2xl">&times;</button>
+                        <div class="form-group col-md-6">
+                            <label>Precio Unitario ($)</label>
+                            <input type="number" step="0.01" name="precio_unidad" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Inicial</label>
+                        <input type="number" name="cantidad" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" name="registrar" class="btn btn-success btn-block">Guardar en Base de Datos</button></div>
+            </form>
         </div>
-        <form method="POST" class="p-8 space-y-4">
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Nombre</label>
-                <input type="text" name="nombre" class="w-full p-3 rounded-xl outline-none" required>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Código</label>
-                    <input type="text" name="codigo" class="w-full p-3 rounded-xl outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Precio Unit.</label>
-                    <input type="number" step="0.01" name="precio_unidad" class="w-full p-3 rounded-xl outline-none" required>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Descripción</label>
-                <textarea name="descripcion" class="w-full p-3 rounded-xl outline-none" rows="2"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Stock Inicial</label>
-                <input type="number" name="cantidad" class="w-full p-3 rounded-xl outline-none" required>
-            </div>
-            <button type="submit" name="registrar" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg uppercase tracking-widest mt-4 italic">Guardar en Base de Datos</button>
-        </form>
     </div>
 </div>
 
-<div id="modalEditar" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 backdrop-blur-sm px-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
-        <div class="bg-[#08082c] p-6 text-white flex justify-between items-center">
-            <h3 class="font-bold italic text-xl uppercase text-white">Editar Existencias</h3>
-            <button onclick="closeModal('modalEditar')" class="text-2xl">&times;</button>
+<div class="modal fade" id="modalEditar" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <form method="POST">
+                <div class="modal-header"><h5>Editar Existencias</h5></div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id_producto" id="edit_id">
+                    <div class="form-group">
+                        <label>Producto</label>
+                        <input type="text" name="nombre" id="edit_nom" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Código</label>
+                            <input type="text" name="codigo" id="edit_cod" class="form-control" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Precio Unitario</label>
+                            <input type="number" step="0.01" name="precio_unidad" id="edit_pre" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" id="edit_des" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad Actual</label>
+                        <input type="number" name="cantidad" id="edit_can" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" name="editar" class="btn btn-info btn-block">Actualizar Datos</button></div>
+            </form>
         </div>
-        <form method="POST" class="p-8 space-y-4">
-            <input type="hidden" name="id_producto" id="edit_id">
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Producto</label>
-                <input type="text" name="nombre" id="edit_nom" class="w-full p-3 rounded-xl outline-none" required>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Código</label>
-                    <input type="text" name="codigo" id="edit_cod" class="w-full p-3 rounded-xl outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Precio Unit.</label>
-                    <input type="number" step="0.01" name="precio_unidad" id="edit_pre" class="w-full p-3 rounded-xl outline-none" required>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Descripción</label>
-                <textarea name="descripcion" id="edit_des" class="w-full p-3 rounded-xl outline-none" rows="2"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Cantidad Actual</label>
-                <input type="number" name="cantidad" id="edit_can" class="w-full p-3 rounded-xl outline-none" required>
-            </div>
-            <button type="submit" name="editar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg uppercase tracking-widest mt-4 italic">Actualizar Datos</button>
-        </form>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 $(document).ready(function() {
     $('#tablaInventario').DataTable({ 
-        language: { url: "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" } 
+        language: { "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" } 
     });
+
+    $('.btnEditar').on('click', function() {
+        $('#edit_id').val($(this).data('id'));
+        $('#edit_cod').val($(this).data('cod'));
+        $('#edit_nom').val($(this).data('nom'));
+        $('#edit_des').val($(this).data('des'));
+        $('#edit_can').val($(this).data('can'));
+        $('#edit_pre').val($(this).data('pre'));
+    });
+
     const status = new URLSearchParams(window.location.search).get('status');
-    if(status) Swal.fire({icon:'success', title:'Operación Exitosa', showConfirmButton:false, timer:1500});
+    if(status === 'reg') Swal.fire({icon:'success', title:'Registrado', showConfirmButton:false, timer:1500});
+    if(status === 'edit') Swal.fire({icon:'info', title:'Actualizado', showConfirmButton:false, timer:1500});
+    if(status === 'del') Swal.fire({icon:'error', title:'Eliminado', showConfirmButton:false, timer:1500});
 });
-
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-function editarItem(data) {
-    document.getElementById('edit_id').value = data.id_producto;
-    document.getElementById('edit_cod').value = data.codigo;
-    document.getElementById('edit_nom').value = data.nombre;
-    document.getElementById('edit_des').value = data.descripcion;
-    document.getElementById('edit_can').value = data.cantidad;
-    document.getElementById('edit_pre').value = data.precio_unidad;
-    openModal('modalEditar');
-}
 
 function confirmarEliminar(id, nombre) {
     Swal.fire({
         title: '¿Eliminar ' + nombre + '?',
+        text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#ef4444',
+        confirmButtonColor: '#d33',
         confirmButtonText: 'Sí, borrar'
     }).then((result) => { if (result.isConfirmed) window.location.href = `?delete=${id}`; });
 }

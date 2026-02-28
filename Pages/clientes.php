@@ -105,6 +105,22 @@ $result = $clienteObj->listar();
         .modal-header { background-color: #08082c; color: white; }
         .badge-tel { background: #e3f2fd; color: #0d47a1; font-weight: bold; border: 1px solid #bbdefb; }
     </style>
+        <style>
+        body { 
+            font-family: Georgia, 'Times New Roman', Times, serif; 
+            /* Configuración de la imagen de fondo */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        /* Glassmorphism para las tarjetas si prefieres un estilo más moderno */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+        }
+    </style>
 </head>
 <body>
 
