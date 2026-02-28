@@ -4,103 +4,167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contacto | Ruta Larga Furgones Unidos</title>
-    <link rel="stylesheet" href="../CSS/contacto.css"> 
-</head>
-<body>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Tipografía y estilos base */
+        body { 
+            font-family: Georgia, 'Times New Roman', Times, serif; 
+        }
+        
+        /* Animación personalizada para los enlaces del nav */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 3px;
+            background-color: white;
+            border-radius: 5px;
+            transform: scaleX(0);
+            transition: transform 0.5s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            transform: scaleX(1);
+        }
 
-    <header>
-        <h2 class="logo">LOGO</h2>
-        <nav class="navigation">
-            <a href="index.html">Inicio</a>
-            <a href="sobre_nosotros.html">Sobre nosotros</a>
-            <a href="servicio.html">Servicios</a>
-            <a href="#">Contacto</a>
-            </nav>
+        /* Hero con fondo */
+        .contact-hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../assets/img/fondo.jpg');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 5px solid #666666;
+        }
+    </style>
+</head>
+<body class="bg-[#F9FAFB] text-gray-800 m-0 p-0 leading-relaxed">
+
+    <header class="absolute top-0 w-full px-6 md:px-24 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.67)]">
+        <h2 class="text-2xl md:text-3xl text-white font-bold select-none m-0">LOGO</h2>
+        <nav class="hidden md:flex space-x-10">
+            <a href="index.html" class="nav-link text-white text-lg font-medium">Inicio</a>
+            <a href="sobre_nosotros.html" class="nav-link text-white text-lg font-medium">Sobre nosotros</a>
+            <a href="servicio.html" class="nav-link text-white text-lg font-medium">Servicios</a>
+            <a href="#" class="nav-link active text-white text-lg font-medium">Contacto</a>
+        </nav>
     </header>
 
-    <section class="contact-hero">
-        <h1>CONTÁCTANOS</h1>
-        <p>Estamos aquí para ayudarte a trasladar tu carga. Envíanos un mensaje o visítanos.</p>
+    <section class="contact-hero-bg min-h-[400px] flex flex-col items-center justify-center text-center px-6 pt-32 pb-20">
+        <h1 class="text-4xl md:text-6xl text-white font-bold mb-4 drop-shadow-lg uppercase">CONTÁCTANOS</h1>
+        <p class="text-lg md:text-xl text-white opacity-90 max-w-2xl drop-shadow-md">
+            Estamos aquí para ayudarte a trasladar tu carga. Envíanos un mensaje o visítanos.
+        </p>
     </section>
 
-    <section class="contact-section">
-        <div class="contact-container">
+    <section class="py-20 px-6 md:px-12 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
             
-            <div class="contact-info">
-                <h2>Información de Contacto</h2>
-                <p>Si tienes alguna pregunta sobre nuestros servicios, no dudes en contactarnos a través de los siguientes medios:</p>
-
-                <div class="info-item">
-                    <ion-icon name="location-outline"></ion-icon>
-                    <div>
-                        <h3>Dirección Principal</h3>
-                        <p>Km. 21 Carretera Panamericana, Av. El Lago, Urb. Montaña Alta, Carrizal, Venezuela.</p>
-                    </div>
+            <div class="space-y-8">
+                <div>
+                    <h2 class="text-4xl font-bold text-gray-800 mb-6 border-b-4 border-gray-200 pb-2 inline-block">Información</h2>
+                    <p class="text-gray-600 text-lg mb-8">Si tienes alguna pregunta sobre nuestros servicios, no dudes en contactarnos a través de los siguientes medios:</p>
                 </div>
 
-                <div class="info-item">
-                    <ion-icon name="call-outline"></ion-icon>
-                    <div>
-                        <h3>Teléfono</h3>
-                        <p>+58 (212) 123-4567 (Ventas)</p>
-                        <p>+58 (212) 765-4321 (Soporte)</p>
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="text-3xl text-gray-500 mt-1">
+                            <ion-icon name="location-outline"></ion-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Dirección Principal</h3>
+                            <p class="text-gray-600 italic">Km. 21 Carretera Panamericana, Av. El Lago, Urb. Montaña Alta, Carrizal, Venezuela.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="text-3xl text-gray-500 mt-1">
+                            <ion-icon name="call-outline"></ion-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Teléfono</h3>
+                            <p class="text-gray-600">+58 (212) 123-4567 (Ventas)</p>
+                            <p class="text-gray-600">+58 (212) 765-4321 (Soporte)</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="text-3xl text-gray-500 mt-1">
+                            <ion-icon name="mail-outline"></ion-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Correo Electrónico</h3>
+                            <p class="text-gray-600">ventas@rutalarga.com</p>
+                            <p class="text-gray-600">soporte@rutalarga.com</p>
+                        </div>
                     </div>
                 </div>
-
-                <div class="info-item">
-                    <ion-icon name="mail-outline"></ion-icon>
-                    <div>
-                        <h3>Correo Electrónico</h3>
-                        <p>ventas@rutalarga.com</p>
-                        <p>soporte@rutalarga.com</p>
-                    </div>
-                </div>
-
             </div>
-            
-            <div class="contact-form-wrapper">
-                <h2>Envíanos un Mensaje</h2>
-                <form class="contact-form" action="#" method="POST">
-                    <div class="form-group">
-                        <label for="nombre">Nombre Completo</label>
-                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Luis Galindez">
+
+            <div class="bg-white p-8 md:p-10 rounded-xl shadow-xl border-t-8 border-[rgb(8,8,44)]">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center uppercase tracking-tight">Envíanos un Mensaje</h2>
+                <form action="https://formspree.io/f/xaqdklpb" method="POST" class="space-y-5">
+                    <div>
+                        <label for="nombre" class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
+                        <input type="text" id="nombre" name="nombre" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none transition-all"
+                            placeholder="Ej: Luis Galindez">
                     </div>
-                    <div class="form-group">
-                        <label for="email">Correo Electrónico</label>
-                        <input type="email" id="email" name="email" required placeholder="Ej: tu.correo@empresa.com">
+                    <div>
+                        <label for="email" class="block text-sm font-bold text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="email" name="email" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none transition-all"
+                            placeholder="Ej: tu.correo@empresa.com">
                     </div>
-                    <div class="form-group">
-                        <label for="asunto">Asunto</label>
-                        <input type="text" id="asunto" name="asunto" required placeholder="Ej: Consulta sobre Sistema de Fletes">
+                    <div>
+                        <label for="asunto" class="block text-sm font-bold text-gray-700 mb-1">Asunto</label>
+                        <input type="text" id="asunto" name="asunto" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none transition-all"
+                            placeholder="Ej: Consulta sobre Sistema de Fletes">
                     </div>
-                    <div class="form-group">
-                        <label for="mensaje">Mensaje</label>
-                        <textarea id="mensaje" name="mensaje" rows="5" required placeholder="Escribe tu consulta aquí..."></textarea>
+                    <div>
+                        <label for="mensaje" class="block text-sm font-bold text-gray-700 mb-1">Mensaje</label>
+                        <textarea id="mensaje" name="mensaje" rows="4" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none transition-all"
+                            placeholder="Escribe tu consulta aquí..."></textarea>
                     </div>
-                    <button type="submit" class="submit-btn">Enviar Mensaje</button>
+                    <button type="submit" 
+                        class="w-full bg-[#3e5e9cb4] hover:bg-[rgb(8,8,44)] text-white font-bold py-4 px-6 rounded-lg uppercase tracking-widest transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
+                        Enviar Mensaje
+                    </button>
                 </form>
             </div>
 
         </div>
     </section>
 
-    <section class="map-section">
-        <h2>NUESTRA UBICACIÓN GEOGRÁFICA</h2>
-        <div class="map-container">
-            <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.456789012345!2d-67.034567!3d10.485678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c2a591e92d8c3f1%3A0x6d859a0f4a8b7c3d!2sCaracas%2C%20Distrito%20Capital%2C%20Venezuela!5e0!3m2!1ses!2sve!4v1678896000000!5m2!1ses!2sve0" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"
-                title="Ubicación de la Oficina Principal en Carrizal">
-            </iframe>
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-10 text-center uppercase">Nuestra Ubicación Geográfica</h2>
+            <div class="rounded-xl overflow-hidden shadow-2xl border-4 border-gray-100 h-[450px]">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3924.363984180126!2d-66.9888!3d10.3456!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDIwJzQ0LjIiTiA2NsKwNTknMTkuNyJX!5e0!3m2!1ses!2sve!4v1620000000000!5m2!1ses!2sve" 
+                    class="w-full h-full border-0"
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Ubicación de la Oficina Principal en Carrizal">
+                </iframe>
+            </div>
         </div>
     </section>
 
-    <footer>
-        <p>© 2025 Ruta Larga Furgones Unidos Carrizal. Todos los derechos reservados.</p>
-        <div class="social-links">
-            <a href="#">Privacidad</a> | <a href="#">Términos de Servicio</a> | <a href="#">Aviso Legal</a>
+    <footer class="bg-[rgb(8,8,44)] text-gray-300 py-10 text-center text-sm border-t border-gray-800">
+        <p class="mb-4">© 2025 Ruta Larga Furgones Unidos Carrizal. Todos los derechos reservados.</p>
+        <div class="flex justify-center space-x-6">
+            <a href="#" class="hover:text-white transition-colors">Privacidad</a>
+            <span class="text-gray-700">|</span>
+            <a href="#" class="hover:text-white transition-colors">Términos de Servicio</a>
+            <span class="text-gray-700">|</span>
+            <a href="#" class="hover:text-white transition-colors">Aviso Legal</a>
         </div>
     </footer>
 

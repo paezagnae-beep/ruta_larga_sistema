@@ -95,6 +95,7 @@ if ($mensaje) {
                     
                     <div class="text-right mt-2">
                         <a href="recuperar_clave.php" class="text-[10px] text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest italic">
+                        <a href="recuperarcontrasena.php" class="text-[10px] text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest italic">
                             ¿Olvidó su contraseña?
                         </a>
                     </div>
