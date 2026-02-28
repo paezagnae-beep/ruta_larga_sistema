@@ -61,6 +61,28 @@ if (isset($_POST["guardar"])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+    .navbar-custom { background-color: #08082c; }
+    .modal-header { background-color: #08082c; color: white; }
+    .badge-rif { background: #e8f5e9; color: #2e7d32; font-weight: bold; border: 1px solid #c8e6c9; }
+</style>
+    <style>
+    body { 
+        font-family: Georgia, 'Times New Roman', Times, serif; 
+        /* Configuración de la imagen de fondo */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+    /* Glassmorphism para las tarjetas si prefieres un estilo más moderno */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+    }
+</style>
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen flex items-center justify-center">
 

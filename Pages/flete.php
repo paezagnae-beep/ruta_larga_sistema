@@ -86,12 +86,27 @@ $result = $reporte->mostrar();
     <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
     
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .navbar-custom { background-color: #08082c; }
-        .btn-estado { transition: all 0.3s; border: none; font-weight: bold; width: 100px; }
-        .btn-estado:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .modal-header { background-color: #08082c; color: white; }
-    </style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+    .navbar-custom { background-color: #08082c; }
+    .modal-header { background-color: #08082c; color: white; }
+    .badge-rif { background: #e8f5e9; color: #2e7d32; font-weight: bold; border: 1px solid #c8e6c9; }
+</style>
+    <style>
+    body { 
+        font-family: Georgia, 'Times New Roman', Times, serif; 
+        /* Configuración de la imagen de fondo */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+    /* Glassmorphism para las tarjetas si prefieres un estilo más moderno */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+    }
+</style>
 </head>
 <body>
 

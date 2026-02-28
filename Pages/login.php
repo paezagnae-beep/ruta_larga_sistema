@@ -24,9 +24,27 @@ if ($mensaje) {
     <title>Acceso al Sistema | Ruta Larga</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Aplicamos tu tipografía Georgia del diseño original */
-        body { font-family: Georgia, 'Times New Roman', Times, serif; }
-    </style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+    .navbar-custom { background-color: #08082c; }
+    .modal-header { background-color: #08082c; color: white; }
+    .badge-rif { background: #e8f5e9; color: #2e7d32; font-weight: bold; border: 1px solid #c8e6c9; }
+</style>
+    <style>
+    body { 
+        font-family: Georgia, 'Times New Roman', Times, serif; 
+        /* Configuración de la imagen de fondo */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+    /* Glassmorphism para las tarjetas si prefieres un estilo más moderno */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+    }
+</style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
