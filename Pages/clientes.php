@@ -52,7 +52,7 @@ class Cliente extends Conexion
     }
     public function insertar()
     {
-        $stmt = $this->conexion->prepare("INSERT INTO clientes (RIF_cedula, nombre, profesional, telefono) VALUES (?, ?, 'Cliente', ?)");
+        $stmt = $this->conexion->prepare("INSERT INTO clientes (RIF_cedula, nombre, telefono) VALUES (?, ?, ?)");
         $stmt->bind_param("sss", $this->rif, $this->nombre, $this->telefono);
         return $stmt->execute();
     }
