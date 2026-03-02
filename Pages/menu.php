@@ -5,6 +5,26 @@ if (!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit();
 }
+
+// 1. CONEXIÓN Y CONSULTA DE DATOS DEL USUARIO
+$mysqli = new mysqli("localhost", "root", "", "proyecto");
+$correoSesion = $_SESSION["usuario"];
+$nombreMostrar = "Usuario"; // Valor por defecto
+
+// Buscamos el nombre y apellido usando el email de la sesión
+$stmt = $mysqli->prepare("SELECT Nombre, Apellido FROM usuarios WHERE Email = ?");
+$stmt->bind_param("s", $correoSesion);
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+if ($fila = $resultado->fetch_assoc()) {
+    // Si tiene nombre y apellido, los concatenamos. Si están vacíos, usamos el correo.
+    if (!empty($fila['Nombre'])) {
+        $nombreMostrar = $fila['Nombre'] . " " . $fila['Apellido'];
+    } else {
+        $nombreMostrar = $correoSesion;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,14 +37,12 @@ if (!isset($_SESSION["usuario"])) {
     <style>
         body { 
             font-family: Georgia, 'Times New Roman', Times, serif; 
-            /* Configuración de la imagen de fondo */
             background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
         }
-        /* Glassmorphism para las tarjetas */
         .glass-card {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(5px);
@@ -33,25 +51,35 @@ if (!isset($_SESSION["usuario"])) {
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <header class="fixed top-0 w-full px-10 py-5 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.95)] shadow-xl border-b border-gray-700">
-        <h2 class="text-white text-2xl font-bold tracking-wider uppercase">Ruta Larga</h2>
-        <nav class="flex items-center gap-6">
-            <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg">
-                Cerrar Sesión
+    <header class="fixed top-0 w-full px-6 md:px-10 py-4 flex justify-between items-center z-50 bg-[rgba(8,8,44,0.95)] shadow-xl border-b border-gray-700">
+        <h2 class="text-white text-xl md:text-2xl font-bold tracking-wider uppercase">Ruta Larga</h2>
+        
+        <nav class="flex items-center gap-4 md:gap-6">
+            <a href="editar_perfil.php" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 transition-all group">
+                <div class="bg-orange-600 p-1.5 rounded-full group-hover:bg-orange-500 transition-colors">
+                    <i class="ph ph-user text-sm"></i>
+                </div>
+                <div class="hidden md:block text-left">
+                    <p class="text-[9px] uppercase tracking-tighter text-gray-400 leading-none">Mi Perfil</p>
+                    <p class="text-[11px] font-bold truncate max-w-[150px]"><?php echo htmlspecialchars($nombreMostrar); ?></p>
+                </div>
+            </a>
+
+            <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2">
+                <i class="ph ph-sign-out font-bold"></i>
+                <span class="hidden md:inline">Salir</span>
             </a>
         </nav>
     </header>
 
     <main class="flex-grow pt-32 pb-20 px-6 max-w-7xl mx-auto w-full">
-        
         <div class="text-center mb-16">
             <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-md">Módulos de Gestión</h1>
             <div class="h-1.5 w-32 bg-orange-600 mx-auto rounded-full mb-6"></div>
-            <p class="text-gray-200 uppercase tracking-[0.2em] text-xs font-semibold drop-shadow-sm">Seleccione una unidad administrativa para continuar</p>
+            <p class="text-gray-200 uppercase tracking-[0.2em] text-[10px] md:text-xs font-semibold drop-shadow-sm">Panel Administrativo de Control Logístico</p>
         </div>
 
         <div class="flex flex-wrap justify-center gap-8">
-            
             <a href="flete.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
                 <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-colors">
                     <i class="ph ph-truck text-4xl text-orange-600 group-hover:text-white"></i>
@@ -73,7 +101,7 @@ if (!isset($_SESSION["usuario"])) {
                     Acceder Módulo <i class="ph ph-caret-double-right"></i>
                 </div>
             </a>
-
+            
             <a href="vehiculo.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
                 <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-600 transition-colors">
                     <i class="ph ph-car-profile text-4xl text-green-600 group-hover:text-white"></i>
@@ -106,7 +134,6 @@ if (!isset($_SESSION["usuario"])) {
                     Acceder Módulo <i class="ph ph-caret-double-right"></i>
                 </div>
             </a>
-
         </div>
     </main>
 
