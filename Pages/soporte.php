@@ -53,17 +53,17 @@
       <form class="space-y-6" action="https://formspree.io/f/mlgwvpqv" method="POST">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest" for="nombre">Nombre Completo</label>
-            <input type="text" id="nombre" name="nombre" required 
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 focus:bg-white outline-none transition-all placeholder-gray-300"
-              placeholder="Ej: Luis Galindez">
-          </div>
-
-          <div class="space-y-2">
             <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest" for="email">Correo Electrónico</label>
             <input type="email" id="email" name="email" required 
               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 focus:bg-white outline-none transition-all placeholder-gray-300"
               placeholder="Ej: tu.correo@empresa.com">
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest" for="nombre">Nombre Completo</label>
+            <input type="text" id="nombre" name="nombre" required 
+              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 focus:bg-white outline-none transition-all placeholder-gray-300"
+              placeholder="Ej: Luis Galindez">
           </div>
         </div>
 
