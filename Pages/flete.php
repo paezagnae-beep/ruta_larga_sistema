@@ -2,253 +2,262 @@
 session_start();
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-// 1. SEGURIDAD E INACTIVIDAD (10 minutos)
-$timeout = 600; 
-if (!isset($_SESSION["usuario"])) { header("Location: login.php"); exit(); }
+// 1. SEGURIDAD E INACTIVIDAD
+$timeout = 600;
+if (!isset($_SESSION["usuario"])) {
+    header("Location: login.php");
+    exit();
+}
 if (isset($_SESSION['ultima_actividad']) && (time() - $_SESSION['ultima_actividad'] > $timeout)) {
-    session_unset(); session_destroy();
+    session_unset();
+    session_destroy();
     header("Location: login.php?mensaje=sesion_caducada");
     exit();
 }
 $_SESSION['ultima_actividad'] = time();
 
-// 2. CONEXIÓN Y LÓGICA DE NEGOCIO
+// 2. CLASES DE CONEXIÓN Y MODELO
 class Conexion {
     protected $conexion;
     public function __construct() {
         $this->conexion = new mysqli("localhost", "root", "", "proyecto");
-        if ($this->conexion->connect_error) { die("Error conexión: " . $this->conexion->connect_error); }
         $this->conexion->set_charset("utf8mb4");
+        if ($this->conexion->connect_error) {
+            die("Error de conexión: " . $this->conexion->connect_error);
+        }
     }
 }
 
-class ReporteFlete extends Conexion {
-    private $filtro;
-    public function __construct($filtro = 'todo') {
-        parent::__construct();
-        $this->filtro = $filtro;
-    }
+class Flete extends Conexion {
+    private $id, $id_cliente, $id_chofer, $id_vehiculo, $origen, $destino, $estado, $valor, $cancelado, $fecha;
 
-    public function mostrar() {
-        switch ($this->filtro) {
-            case 'dia': $sql = "SELECT * FROM fletes WHERE fecha = CURDATE() ORDER BY fecha DESC"; break;
-            case 'semana': $sql = "SELECT * FROM fletes WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1) ORDER BY fecha DESC"; break;
-            case 'mes': $sql = "SELECT * FROM fletes WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) ORDER BY fecha DESC"; break;
-            default: $sql = "SELECT * FROM fletes ORDER BY fecha DESC"; break;
-        }
+    public function setId($v) { $this->id = intval($v); }
+    public function setIdCliente($v) { $this->id_cliente = intval($v); }
+    public function setIdChofer($v) { $this->id_chofer = intval($v); }
+    public function setIdVehiculo($v) { $this->id_vehiculo = intval($v); }
+    public function setOrigen($v) { $this->origen = substr(trim($v), 0, 100); }
+    public function setDestino($v) { $this->destino = substr(trim($v), 0, 100); }
+    public function setEstado($v) { $this->estado = $v; }
+    public function setValor($v) { $this->valor = floatval($v); }
+    public function setCancelado($v) { $this->cancelado = intval($v); }
+    public function setFecha($v) { $this->fecha = $v; }
+
+    public function listar() {
+        $sql = "SELECT f.*, c.nombre AS cliente_nom, ch.nombre AS chofer_nom, v.placa AS vehiculo_placa
+                FROM fletes f
+                LEFT JOIN clientes c ON f.id_cliente = c.ID_cliente
+                LEFT JOIN choferes ch ON f.id_chofer = ch.ID_chofer
+                LEFT JOIN vehiculos v ON f.id_vehiculo = v.id_vehiculo
+                ORDER BY f.id DESC";
         return $this->conexion->query($sql);
     }
 
-    public function insertar($fecha, $origen, $destino, $valor) {
-        // VALIDACIÓN PHP: No permitir mismo origen y destino
-        if (trim(strtolower($origen)) === trim(strtolower($destino))) { return false; }
-
-        $stmt = $this->conexion->prepare("INSERT INTO fletes (fecha, origen, destino, valor, cancelado) VALUES (?, ?, ?, ?, 0)");
-        $stmt->bind_param("sssd", $fecha, $origen, $destino, $valor);
+    public function insertar() {
+        $stmt = $this->conexion->prepare("INSERT INTO fletes (id_cliente, id_chofer, id_vehiculo, origen, destino, estado, valor, cancelado, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiisssiis", $this->id_cliente, $this->id_chofer, $this->id_vehiculo, $this->origen, $this->destino, $this->estado, $this->valor, $this->cancelado, $this->fecha);
         return $stmt->execute();
     }
 
-    public function actualizar($id, $fecha, $origen, $destino, $valor) {
-        // VALIDACIÓN PHP: No permitir mismo origen y destino
-        if (trim(strtolower($origen)) === trim(strtolower($destino))) { return false; }
-
-        $stmt = $this->conexion->prepare("UPDATE fletes SET fecha=?, origen=?, destino=?, valor=? WHERE id=?");
-        $stmt->bind_param("sssdi", $fecha, $origen, $destino, $valor, $id);
+    public function actualizar() {
+        $stmt = $this->conexion->prepare("UPDATE fletes SET id_cliente=?, id_chofer=?, id_vehiculo=?, origen=?, destino=?, estado=?, valor=?, cancelado=?, fecha=? WHERE id=?");
+        $stmt->bind_param("iiisssiisi", $this->id_cliente, $this->id_chofer, $this->id_vehiculo, $this->origen, $this->destino, $this->estado, $this->valor, $this->cancelado, $this->fecha, $this->id);
         return $stmt->execute();
     }
 
-    public function eliminar($id) {
+    public function eliminar() {
         $stmt = $this->conexion->prepare("DELETE FROM fletes WHERE id = ?");
-        $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $this->id);
         return $stmt->execute();
     }
 
-    public function cambiarCancelado($id, $valorActual) {
-        $nuevoEstado = ($valorActual == 1) ? 0 : 1;
-        $stmt = $this->conexion->prepare("UPDATE fletes SET cancelado = ? WHERE id = ?");
-        $stmt->bind_param("ii", $nuevoEstado, $id);
-        return $stmt->execute();
+    public function obtenerClientes() { return $this->conexion->query("SELECT ID_cliente, nombre FROM clientes"); }
+    public function obtenerChoferes() { return $this->conexion->query("SELECT ID_chofer, nombre FROM choferes"); }
+    public function obtenerVehiculos() { return $this->conexion->query("SELECT id_vehiculo, placa FROM vehiculos"); }
+}
+
+$fleteObj = new Flete();
+$msg_js = "";
+
+// 3. PROCESAMIENTO
+if (isset($_POST['registrar'])) {
+    $fleteObj->setIdCliente($_POST['id_cliente']);
+    $fleteObj->setIdChofer($_POST['id_chofer']);
+    $fleteObj->setIdVehiculo($_POST['id_vehiculo']);
+    $fleteObj->setOrigen($_POST['origen']);
+    $fleteObj->setDestino($_POST['destino']);
+    $fleteObj->setEstado($_POST['estado']);
+    $fleteObj->setValor($_POST['valor']);
+    $fleteObj->setCancelado($_POST['cancelado']);
+    $fleteObj->setFecha($_POST['fecha']);
+
+    if ($fleteObj->insertar()) {
+        header("Location: flete.php?status=reg");
+        exit();
+    } else {
+        $msg_js = "Swal.fire('Error', 'No se pudo guardar', 'error');";
     }
 }
 
-$filtro_actual = $_GET['filtro'] ?? 'todo';
-$reporte = new ReporteFlete($filtro_actual);
+if (isset($_POST['editar'])) {
+    $fleteObj->setId($_POST['id_flete']);
+    $fleteObj->setIdCliente($_POST['id_cliente']);
+    $fleteObj->setIdChofer($_POST['id_chofer']);
+    $fleteObj->setIdVehiculo($_POST['id_vehiculo']);
+    $fleteObj->setOrigen($_POST['origen']);
+    $fleteObj->setDestino($_POST['destino']);
+    $fleteObj->setEstado($_POST['estado']);
+    $fleteObj->setValor($_POST['valor']);
+    $fleteObj->setCancelado($_POST['cancelado']);
+    $fleteObj->setFecha($_POST['fecha']);
 
-// 3. PROCESAMIENTO DE ACCIONES
-if (isset($_POST['registrar_flete'])) {
-    if ($reporte->insertar($_POST['fecha'], $_POST['origen'], $_POST['destino'], $_POST['valor'])) {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&filtro=" . $filtro_actual);
-    } else {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error_ruta&filtro=" . $filtro_actual);
+    if ($fleteObj->actualizar()) {
+        header("Location: flete.php?status=edit");
+        exit();
     }
-    exit();
 }
-if (isset($_POST['editar_flete'])) {
-    if ($reporte->actualizar($_POST['id_flete'], $_POST['fecha'], $_POST['origen'], $_POST['destino'], $_POST['valor'])) {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=updated&filtro=" . $filtro_actual);
-    } else {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error_ruta&filtro=" . $filtro_actual);
-    }
-    exit();
-}
+
 if (isset($_GET['delete_id'])) {
-    $reporte->eliminar($_GET['delete_id']);
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=deleted&filtro=" . $filtro_actual);
-    exit();
+    $fleteObj->setId($_GET['delete_id']);
+    if ($fleteObj->eliminar()) {
+        header("Location: flete.php?status=del");
+        exit();
+    }
 }
-if (isset($_GET['id_cambio']) && isset($_GET['valor'])) {
-    $reporte->cambiarCancelado($_GET['id_cambio'], $_GET['valor']);
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=updated&filtro=" . $filtro_actual);
-    exit();
-}
-$result = $reporte->mostrar();
+
+$result = $fleteObj->listar();
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Reportes | Ruta Larga</title>
+    <title>Fletes | Ruta Larga</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.5/css/responsive.bootstrap4.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
-    
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../assets/img/fondo.jpg');
-            background-size: cover; background-attachment: fixed;
-        }
+        body { background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../assets/img/fondo.jpg'); background-size: cover; background-attachment: fixed; font-family: 'Segoe UI', sans-serif; }
         .navbar-custom { background-color: #08082c; }
-        .glass-card { background: rgba(255, 255, 255, 0.98); border-radius: 12px; border: none; }
-        .btn-estado { cursor: pointer; border: none; transition: 0.3s; }
-        .btn-estado:hover { opacity: 0.8; transform: scale(1.05); }
-        @media (max-width: 768px) {
-            .h2-title { font-size: 1.4rem; text-align: center; color: white; }
-            .btn-new { width: 100%; margin-top: 15px; }
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.95); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark navbar-custom mb-4 shadow">
     <div class="container">
-        <span class="navbar-brand font-weight-bold">RUTA LARGA</span>
-        <a href="menu.php" class="btn btn-outline-light btn-sm shadow-sm">Volver al Menú</a>
+        <span class="navbar-brand font-weight-bold">RUTA LARGA - FLETES</span>
+        <a href="menu.php" class="btn btn-outline-light btn-sm">Menú Principal</a>
     </div>
 </nav>
 
-<div class="container-fluid px-3 px-md-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-7">
-            <h2 class="font-weight-bold text-white h2-title">Monitor de Operaciones</h2>
-            <div class="btn-group shadow-sm bg-white p-1 rounded mt-2">
-                <a href="?filtro=dia" class="btn btn-<?= $filtro_actual == 'dia' ? 'primary' : 'light' ?> btn-sm">Hoy</a>
-                <a href="?filtro=semana" class="btn btn-<?= $filtro_actual == 'semana' ? 'primary' : 'light' ?> btn-sm">Semana</a>
-                <a href="?filtro=mes" class="btn btn-<?= $filtro_actual == 'mes' ? 'primary' : 'light' ?> btn-sm">Mes</a>
-                <a href="?filtro=todo" class="btn btn-<?= $filtro_actual == 'todo' ? 'primary' : 'light' ?> btn-sm">Todo</a>
-            </div>
+<div class="container-fluid px-5">
+    <div class="glass-card p-4 shadow">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>Listado de Fletes</h4>
+            <button class="btn btn-success" data-toggle="modal" data-target="#modalFlete">Registrar Flete</button>
         </div>
-        <div class="col-md-5 text-md-right">
-            <button class="btn btn-success px-4 font-weight-bold shadow btn-new" data-toggle="modal" data-target="#modalFlete">+ Nuevo Flete</button>
-        </div>
-    </div>
 
-    <div class="card shadow glass-card">
-        <div class="card-body p-3">
-            <table id="tablaFletes" class="table table-hover w-100 dt-responsive nowrap">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Ruta (Origen → Destino)</th>
-                        <th>Monto</th>
-                        <th class="text-center">Estado</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($fila = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td class="align-middle font-weight-bold"><?= date("d/m/Y", strtotime($fila['fecha'])) ?></td>
-                        <td class="align-middle">
-                            <span class="text-primary"><?= htmlspecialchars($fila['origen']) ?></span> 
-                            <small class="text-muted">➔</small> 
-                            <span class="text-success"><?= htmlspecialchars($fila['destino']) ?></span>
-                        </td>
-                        <td class="align-middle font-weight-bold text-dark">$<?= number_format($fila['valor'], 2) ?></td>
-                        <td class="text-center align-middle">
-                            <button onclick="confirmarCambio(<?= $fila['id'] ?>, <?= $fila['cancelado'] ?>, '<?= $filtro_actual ?>')"
-                                    class="badge badge-pill p-2 btn-estado <?= $fila['cancelado'] == 1 ? 'badge-success' : 'badge-danger' ?>">
-                                <?= $fila['cancelado'] == 1 ? 'PAGADO' : 'PENDIENTE' ?>
-                            </button>
-                        </td>
-                        <td class="text-center align-middle">
-                            <div class="btn-group shadow-sm">
-                                <button class="btn btn-outline-info btn-sm btnEditar" 
-                                        data-id="<?= $fila['id'] ?>"
-                                        data-fecha="<?= $fila['fecha'] ?>"
-                                        data-origen="<?= htmlspecialchars($fila['origen']) ?>"
-                                        data-destino="<?= htmlspecialchars($fila['destino']) ?>"
-                                        data-valor="<?= $fila['valor'] ?>">
-                                    Editar
-                                </button>
-                                <button onclick="confirmarEliminar(<?= $fila['id'] ?>, '<?= $filtro_actual ?>')" class="btn btn-outline-danger btn-sm">
-                                    Borrar
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
+        <table id="tablaFletes" class="table table-sm table-hover table-bordered w-100">
+            <thead class="thead-light">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Personal/Unidad</th>
+                    <th>Ruta</th>
+                    <th>Estado</th>
+                    <th>Valor</th>
+                    <th>Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($f = $result->fetch_assoc()): ?>
+                <tr>
+                    <td><?= date("d/m/Y", strtotime($f['fecha'])) ?></td>
+                    <td><?= htmlspecialchars($f['cliente_nom'] ?? 'N/A') ?></td>
+                    <td>
+                        <small>Chofer: <?= htmlspecialchars($f['chofer_nom'] ?? '---') ?></small><br>
+                        <small>Placa: <?= htmlspecialchars($f['vehiculo_placa'] ?? '---') ?></small>
+                    </td>
+                    <td><small>De: <?= htmlspecialchars($f['origen']) ?><br>A: <?= htmlspecialchars($f['destino']) ?></small></td>
+                    <td><span class="badge <?= $f['estado']=='Completado' ? 'badge-success' : 'badge-warning' ?>"><?= $f['estado'] ?></span></td>
+                    <td>$<?= number_format($f['valor'], 2) ?></td>
+                    <td><?= $f['cancelado'] ? 'Pagado' : 'Pendiente' ?></td>
+                    <td class="text-center">
+                        <button class="btn btn-info btn-sm btnEditar" 
+                            data-id="<?= $f['id'] ?>" data-fecha="<?= $f['fecha'] ?>" 
+                            data-cliente="<?= $f['id_cliente'] ?>" data-chofer="<?= $f['id_chofer'] ?>" 
+                            data-vehiculo="<?= $f['id_vehiculo'] ?>" data-origen="<?= $f['origen'] ?>" 
+                            data-destino="<?= $f['destino'] ?>" data-valor="<?= $f['valor'] ?>" 
+                            data-estado="<?= $f['estado'] ?>" data-cancelado="<?= $f['cancelado'] ?>">
+                            Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="borrarFlete(<?= $f['id'] ?>)">
+                            Borrar
+                        </button>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
-<div class="modal fade" id="modalFlete" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow-lg">
-            <form method="POST" onsubmit="return validarRuta(this)">
-                <div class="modal-header">
-                    <h5 class="modal-title font-weight-bold">📝 Registrar Nuevo Flete</h5>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="form-group">
-                        <label class="small font-weight-bold">FECHA</label>
-                        <input type="date" name="fecha" class="form-control" required value="<?= date('Y-m-d') ?>">
+<div class="modal fade" id="modalFlete" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="formFlete">
+                <div class="modal-header bg-dark text-white"><h5 id="modalTitle">Nuevo Registro</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" name="id_flete" id="id_flete">
+                    <div class="row">
+                        <div class="col-md-4 form-group"><label>Fecha</label><input type="date" name="fecha" id="fecha" class="form-control" required></div>
+                        <div class="col-md-8 form-group">
+                            <label>Cliente</label>
+                            <select name="id_cliente" id="id_cliente" class="form-control" required>
+                                <option value="">Seleccione Cliente...</option>
+                                <?php $cts = $fleteObj->obtenerClientes(); while($c = $cts->fetch_assoc()) echo "<option value='{$c['ID_cliente']}'>{$c['nombre']}</option>"; ?>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group"><label class="small font-weight-bold">ORIGEN</label><input type="text" name="origen" class="form-control" placeholder="Ciudad de salida" required></div>
-                    <div class="form-group"><label class="small font-weight-bold">DESTINO</label><input type="text" name="destino" class="form-control" placeholder="Ciudad de llegada" required></div>
-                    <div class="form-group"><label class="small font-weight-bold">MONTO PACTADO ($)</label><input type="number" step="0.01" name="valor" class="form-control form-control-lg text-primary font-weight-bold" placeholder="0.00" required></div>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Chofer</label>
+                            <select name="id_chofer" id="id_chofer" class="form-control" required>
+                                <option value="">Seleccione Chofer...</option>
+                                <?php $chs = $fleteObj->obtenerChoferes(); while($ch = $chs->fetch_assoc()) echo "<option value='{$ch['ID_chofer']}'>{$ch['nombre']}</option>"; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Vehículo</label>
+                            <select name="id_vehiculo" id="id_vehiculo" class="form-control" required>
+                                <option value="">Seleccione Unidad...</option>
+                                <?php $vhs = $fleteObj->obtenerVehiculos(); while($v = $vhs->fetch_assoc()) echo "<option value='{$v['id_vehiculo']}'>{$v['placa']}</option>"; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group"><label>Origen</label><input type="text" name="origen" id="origen" class="form-control" required></div>
+                        <div class="col-md-6 form-group"><label>Destino</label><input type="text" name="destino" id="destino" class="form-control" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group"><label>Valor ($)</label><input type="number" name="valor" id="valor" class="form-control" step="0.01" required></div>
+                        <div class="col-md-4 form-group">
+                            <label>Estado</label>
+                            <select name="estado" id="estado" class="form-control">
+                                <option>Pendiente</option><option>En Ruta</option><option>Completado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>¿Pagado?</label>
+                            <select name="cancelado" id="cancelado" class="form-control">
+                                <option value="0">No</option><option value="1">Sí</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    <button type="submit" name="registrar_flete" class="btn btn-success px-4">Guardar Flete</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalEditarFlete" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow-lg">
-            <form method="POST" onsubmit="return validarRuta(this)">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title font-weight-bold">✏️ Editar Información</h5>
-                </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" name="id_flete" id="edit_id">
-                    <div class="form-group"><label class="small font-weight-bold">FECHA</label><input type="date" name="fecha" id="edit_fecha" class="form-control" required></div>
-                    <div class="form-group"><label class="small font-weight-bold">ORIGEN</label><input type="text" name="origen" id="edit_origen" class="form-control" required></div>
-                    <div class="form-group"><label class="small font-weight-bold">DESTINO</label><input type="text" name="destino" id="edit_destino" class="form-control" required></div>
-                    <div class="form-group"><label class="small font-weight-bold">MONTO ($)</label><input type="number" step="0.01" name="valor" id="edit_valor" class="form-control form-control-lg font-weight-bold" required></div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" name="editar_flete" class="btn btn-info px-4">Actualizar Datos</button>
+                    <button type="submit" name="registrar" id="btnSubmit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
         </div>
@@ -259,79 +268,56 @@ $result = $reporte->mostrar();
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.2.5/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.2.5/js/responsive.bootstrap4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-// VALIDACIÓN JS DE RUTA
-function validarRuta(form) {
-    const origen = form.origen.value.trim().toLowerCase();
-    const destino = form.destino.value.trim().toLowerCase();
-    
-    if (origen === destino && origen !== "") {
-        Swal.fire({
-            icon: 'error',
-            title: 'Ruta inválida',
-            text: 'El origen y el destino no pueden ser el mismo lugar.',
-            confirmButtonColor: '#08082c'
+    $(document).ready(function() {
+        $('#tablaFletes').DataTable({ language: { url: "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" } });
+
+        $('.btnEditar').on('click', function() {
+            $('#modalTitle').text('Editar Flete');
+            $('#btnSubmit').attr('name', 'editar').text('Actualizar').removeClass('btn-primary').addClass('btn-info');
+            
+            $('#id_flete').val($(this).data('id'));
+            $('#fecha').val($(this).data('fecha'));
+            $('#id_cliente').val($(this).data('cliente'));
+            $('#id_chofer').val($(this).data('chofer'));
+            $('#id_vehiculo').val($(this).data('vehiculo'));
+            $('#origen').val($(this).data('origen'));
+            $('#destino').val($(this).data('destino'));
+            $('#valor').val($(this).data('valor'));
+            $('#estado').val($(this).data('estado'));
+            $('#cancelado').val($(this).data('cancelado'));
+            
+            $('#modalFlete').modal('show');
         });
-        return false;
+
+        $('#modalFlete').on('hidden.bs.modal', function () {
+            $('#formFlete')[0].reset();
+            $('#modalTitle').text('Nuevo Registro');
+            $('#btnSubmit').attr('name', 'registrar').text('Guardar').removeClass('btn-info').addClass('btn-primary');
+        });
+
+        const status = new URLSearchParams(window.location.search).get('status');
+        if(status === 'reg') Swal.fire({ icon: 'success', title: 'Guardado', showConfirmButton: false, timer: 1500 });
+        if(status === 'edit') Swal.fire({ icon: 'info', title: 'Actualizado', showConfirmButton: false, timer: 1500 });
+        if(status === 'del') Swal.fire({ icon: 'error', title: 'Borrado', showConfirmButton: false, timer: 1500 });
+        
+        <?= $msg_js ?>
+    });
+
+    function borrarFlete(id) {
+        Swal.fire({
+            title: '¿Desea borrar este registro?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Borrar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = 'flete.php?delete_id=' + id;
+        });
     }
-    return true;
-}
-
-$(document).ready(function() {
-    $('#tablaFletes').DataTable({
-        responsive: true,
-        "order": [[ 0, "desc" ]],
-        "language": { "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" }
-    });
-
-    $('#tablaFletes').on('click', '.btnEditar', function() {
-        $('#edit_id').val($(this).data('id'));
-        $('#edit_fecha').val($(this).data('fecha'));
-        $('#edit_origen').val($(this).data('origen'));
-        $('#edit_destino').val($(this).data('destino'));
-        $('#edit_valor').val($(this).data('valor'));
-        $('#modalEditarFlete').modal('show');
-    });
-
-    const status = new URLSearchParams(window.location.search).get('status');
-    if (status === 'success') Swal.fire({ icon: 'success', title: 'Registrado', text: 'El flete se guardó correctamente', timer: 2000, showConfirmButton: false });
-    if (status === 'updated') Swal.fire({ icon: 'info', title: 'Actualizado', text: 'Los cambios han sido aplicados', timer: 1500, showConfirmButton: false });
-    if (status === 'deleted') Swal.fire({ icon: 'error', title: 'Eliminado', text: 'Registro borrado permanentemente', timer: 1500, showConfirmButton: false });
-    if (status === 'error_ruta') Swal.fire({ icon: 'warning', title: 'Error de Ruta', text: 'El origen y destino deben ser diferentes.', confirmButtonColor: '#f39c12' });
-});
-
-function confirmarEliminar(id, filtro) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'Sí, borrar flete',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) { window.location.href = `?delete_id=${id}&filtro=${filtro}`; }
-    });
-}
-
-function confirmarCambio(id, valorActual, filtro) {
-    const nuevoEstado = (valorActual == 1) ? 'PENDIENTE' : 'PAGADO';
-    Swal.fire({
-        title: '¿Cambiar estado?',
-        text: `El flete se marcará como ${nuevoEstado}.`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        confirmButtonText: 'Sí, cambiar',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.isConfirmed) { window.location.href = `?id_cambio=${id}&valor=${valorActual}&filtro=${filtro}`; }
-    });
-}
 </script>
 </body>
 </html>

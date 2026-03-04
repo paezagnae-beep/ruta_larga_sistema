@@ -3,6 +3,7 @@
 class Conexion {
     private $conexion;
     public function __construct() {
+        // Asegúrate de que las columnas Nombre y Apellido existan en tu tabla 'usuarios'
         $this->conexion = new mysqli("localhost", "root", "", "proyecto");
         if ($this->conexion->connect_error) {
             die("Error de conexión: " . $this->conexion->connect_error);
@@ -13,18 +14,21 @@ class Conexion {
 }
 
 class Usuario {
+    private $nombre;
+    private $apellido;
     private $email;
     private $password;
     private $conexion;
 
-    public function __construct($email, $password) {
+    public function __construct($nombre, $apellido, $email, $password) {
+        $this->nombre = $nombre;
+        $this->apellido = $apellido;
         $this->email = $email;
         $this->password = $password;
         $db = new Conexion();
         $this->conexion = $db->getConexion();
     }
 
-    // NUEVO MÉTODO: Verifica si el email ya existe en la base de datos
     public function existeEmail() {
         $sql = "SELECT Email FROM usuarios WHERE Email = ? LIMIT 1";
         $stmt = $this->conexion->prepare($sql);
@@ -36,9 +40,10 @@ class Usuario {
 
     public function registrar() {
         $hash = password_hash($this->password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO usuarios (Email, Contraseña) VALUES (?, ?)";
+        // Se agregan los campos Nombre y Apellido al INSERT
+        $sql = "INSERT INTO usuarios (Nombre, Apellido, Email, Contraseña) VALUES (?, ?, ?, ?)";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("ss", $this->email, $hash);
+        $stmt->bind_param("ssss", $this->nombre, $this->apellido, $this->email, $hash);
         return $stmt->execute();
     }
 }
@@ -47,13 +52,15 @@ $mensaje = "";
 $esError = false;
 
 if (isset($_POST["guardar"])) {
+    $nombre = $_POST["nombre"] ?? '';
+    $apellido = $_POST["apellido"] ?? '';
     $email = $_POST["email"] ?? '';
     $password = $_POST["password"] ?? '';
     $confirm_password = $_POST["confirm_password"] ?? '';
 
     $regex = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>]).{8,}$/";
 
-    if (!$email || !$password || !$confirm_password) {
+    if (!$nombre || !$apellido || !$email || !$password || !$confirm_password) {
         $mensaje = "Todos los campos son obligatorios.";
         $esError = true;
     } elseif ($password !== $confirm_password) {
@@ -63,18 +70,17 @@ if (isset($_POST["guardar"])) {
         $mensaje = "La contraseña no cumple con los requisitos de seguridad.";
         $esError = true;
     } else {
-        $usuario = new Usuario($email, $password);
+        $usuario = new Usuario($nombre, $apellido, $email, $password);
         
-        // VALIDACIÓN: Comprobar duplicidad antes de registrar
         if ($usuario->existeEmail()) {
-            $mensaje = "El correo electrónico ya está registrado. Intente con otro o inicie sesión.";
+            $mensaje = "El correo electrónico ya está registrado.";
             $esError = true;
         } else {
             if ($usuario->registrar()) {
                 header("Location: login.php?mensaje=registro_exitoso");
                 exit();
             } else {
-                $mensaje = "Ocurrió un error inesperado al registrar el usuario.";
+                $mensaje = "Ocurrió un error inesperado.";
                 $esError = true;
             }
         }
@@ -93,14 +99,9 @@ if (isset($_POST["guardar"])) {
         body { 
             font-family: Georgia, 'Times New Roman', Times, serif; 
             background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/img/fondo.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
         .valid { color: #10b981; font-weight: bold; }
         .invalid { color: #9ca3af; }
     </style>
@@ -119,6 +120,23 @@ if (isset($_POST["guardar"])) {
             <?= $mensaje ?>
         </div>
       <?php endif; ?>
+
+      <div class="grid grid-cols-2 gap-4">
+          <div>
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Nombre</label>
+              <input type="text" name="nombre" required
+                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-400 outline-none transition-all"
+                placeholder="Ej: Juan"
+                value="<?= isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : '' ?>"/>
+          </div>
+          <div>
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Apellido</label>
+              <input type="text" name="apellido" required
+                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-400 outline-none transition-all"
+                placeholder="Ej: Pérez"
+                value="<?= isset($_POST['apellido']) ? htmlspecialchars($_POST['apellido']) : '' ?>"/>
+          </div>
+      </div>
 
       <div>
           <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-widest">Correo Electrónico</label>
@@ -146,18 +164,10 @@ if (isset($_POST["guardar"])) {
       <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
           <p class="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Estado de seguridad:</p>
           <ul class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] italic">
-              <li id="req-length" class="invalid flex items-center transition-colors">
-                  <span class="bullet mr-1">○</span> 8+ caracteres
-              </li>
-              <li id="req-upper" class="invalid flex items-center transition-colors">
-                  <span class="bullet mr-1">○</span> Una Mayúscula
-              </li>
-              <li id="req-lower" class="invalid flex items-center transition-colors">
-                  <span class="bullet mr-1">○</span> Una Minúscula
-              </li>
-              <li id="req-symbol" class="invalid flex items-center transition-colors">
-                  <span class="bullet mr-1">○</span> Un Símbolo (@$!%*)
-              </li>
+              <li id="req-length" class="invalid flex items-center transition-colors"><span class="bullet mr-1">○</span> 8+ caracteres</li>
+              <li id="req-upper" class="invalid flex items-center transition-colors"><span class="bullet mr-1">○</span> Una Mayúscula</li>
+              <li id="req-lower" class="invalid flex items-center transition-colors"><span class="bullet mr-1">○</span> Una Minúscula</li>
+              <li id="req-symbol" class="invalid flex items-center transition-colors"><span class="bullet mr-1">○</span> Un Símbolo</li>
           </ul>
       </div>
 
@@ -175,10 +185,10 @@ if (isset($_POST["guardar"])) {
   </div>
 
   <script>
+    // Tu lógica de validación de JS permanece igual (funciona perfectamente)
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirm_password');
     const matchMsg = document.getElementById('match-msg');
-
     const requirements = {
         length: { el: document.getElementById('req-length'), regex: /.{8,}/ },
         upper: { el: document.getElementById('req-upper'), regex: /[A-Z]/ },
@@ -191,15 +201,9 @@ if (isset($_POST["guardar"])) {
         Object.keys(requirements).forEach(key => {
             const req = requirements[key];
             const isValid = req.regex.test(val);
-            if (isValid) {
-                req.el.classList.remove('invalid');
-                req.el.classList.add('valid');
-                req.el.querySelector('.bullet').textContent = '●';
-            } else {
-                req.el.classList.remove('valid');
-                req.el.classList.add('invalid');
-                req.el.querySelector('.bullet').textContent = '○';
-            }
+            req.el.classList.toggle('valid', isValid);
+            req.el.classList.toggle('invalid', !isValid);
+            req.el.querySelector('.bullet').textContent = isValid ? '●' : '○';
         });
         checkMatch();
     });
@@ -207,20 +211,12 @@ if (isset($_POST["guardar"])) {
     confirmInput.addEventListener('input', checkMatch);
 
     function checkMatch() {
-        if (confirmInput.value === "") {
-            matchMsg.classList.add('hidden');
-            return;
-        }
+        if (confirmInput.value === "") { matchMsg.classList.add('hidden'); return; }
         matchMsg.classList.remove('hidden');
-        if (passwordInput.value === confirmInput.value) {
-            matchMsg.textContent = "✓ Las contraseñas coinciden";
-            matchMsg.className = "text-[9px] mt-1 text-green-600 font-bold";
-        } else {
-            matchMsg.textContent = "✗ Las contraseñas no coinciden";
-            matchMsg.className = "text-[9px] mt-1 text-red-500 italic";
-        }
+        const isMatch = passwordInput.value === confirmInput.value;
+        matchMsg.textContent = isMatch ? "✓ Las contraseñas coinciden" : "✗ Las contraseñas no coinciden";
+        matchMsg.className = isMatch ? "text-[9px] mt-1 text-green-600 font-bold" : "text-[9px] mt-1 text-red-500 italic";
     }
   </script>
-
 </body>
 </html>

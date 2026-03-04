@@ -3,9 +3,9 @@ session_start();
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 // 1. SEGURIDAD E INACTIVIDAD
-$timeout = 600;
+$tiempo_espera = 600;
 if (!isset($_SESSION["usuario"])) { header("Location: login.php"); exit(); }
-if (isset($_SESSION['ultima_actividad']) && (time() - $_SESSION['ultima_actividad'] > $timeout)) {
+if (isset($_SESSION['ultima_actividad']) && (time() - $_SESSION['ultima_actividad'] > $tiempo_espera)) {
     session_unset(); session_destroy();
     header("Location: login.php?mensaje=sesion_caducada");
     exit();
@@ -23,75 +23,72 @@ class Conexion {
 }
 
 class Inventario extends Conexion {
-    public function listar() {
+    public function listarProductos() {
         return $this->conexion->query("SELECT * FROM inventario ORDER BY id_producto DESC");
     }
 
-    public function insertar($cod, $nom, $des, $can, $pre) {
-        $stmt = $this->conexion->prepare("INSERT INTO inventario (codigo, nombre, descripcion, cantidad, precio_unidad, fecha_actualizacion) VALUES (?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("sssid", $cod, $nom, $des, $can, $pre);
-        return $stmt->execute();
+    public function insertarProducto($codigo, $nombre, $descripcion, $cantidad, $precio) {
+        $sentencia = $this->conexion->prepare("INSERT INTO inventario (codigo, nombre, descripcion, cantidad, precio_unidad, fecha_actualizacion) VALUES (?, ?, ?, ?, ?, NOW())");
+        $sentencia->bind_param("sssid", $codigo, $nombre, $descripcion, $cantidad, $precio);
+        return $sentencia->execute();
     }
 
-    public function modificar($id, $cod, $nom, $des, $can, $pre) {
-        $stmt = $this->conexion->prepare("UPDATE inventario SET codigo=?, nombre=?, descripcion=?, cantidad=?, precio_unidad=?, fecha_actualizacion=NOW() WHERE id_producto=?");
-        $stmt->bind_param("sssidi", $cod, $nom, $des, $can, $pre, $id);
-        return $stmt->execute();
+    public function modificarProducto($id, $codigo, $nombre, $descripcion, $cantidad, $precio) {
+        $sentencia = $this->conexion->prepare("UPDATE inventario SET codigo=?, nombre=?, descripcion=?, cantidad=?, precio_unidad=?, fecha_actualizacion=NOW() WHERE id_producto=?");
+        $sentencia->bind_param("sssidi", $codigo, $nombre, $descripcion, $cantidad, $precio, $id);
+        return $sentencia->execute();
     }
 
-    // NUEVA FUNCIÓN: MOVIMIENTO (ENTRADA/SALIDA)
     public function procesarMovimiento($id, $cantidad, $tipo) {
         $operador = ($tipo == 'entrada') ? "+" : "-";
         $sql = "UPDATE inventario SET cantidad = cantidad $operador ?, fecha_actualizacion=NOW() WHERE id_producto = ?";
-        $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("ii", $cantidad, $id);
-        return $stmt->execute();
+        $sentencia = $this->conexion->prepare($sql);
+        $sentencia->bind_param("ii", $cantidad, $id);
+        return $sentencia->execute();
     }
 
-    public function eliminar($id) {
-        $stmt = $this->conexion->prepare("DELETE FROM inventario WHERE id_producto = ?");
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
+    public function eliminarProducto($id) {
+        $sentencia = $this->conexion->prepare("DELETE FROM inventario WHERE id_producto = ?");
+        $sentencia->bind_param("i", $id);
+        return $sentencia->execute();
     }
 }
 
-$objInv = new Inventario();
+$objetoInventario = new Inventario();
 
 // 3. PROCESAMIENTO DE ACCIONES
 if (isset($_POST['registrar'])) {
-    $cod = trim($_POST['codigo']);
-    $nom = trim($_POST['nombre']);
-    $objInv->insertar($cod, $nom, $_POST['descripcion'], $_POST['cantidad'], $_POST['precio_unidad']);
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=reg&cod=" . urlencode($cod) . "&nom=" . urlencode($nom)); 
+    $codigo = trim($_POST['codigo']);
+    $nombre = trim($_POST['nombre']);
+    $objetoInventario->insertarProducto($codigo, $nombre, $_POST['descripcion'], $_POST['cantidad'], $_POST['precio_unidad']);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?estado=reg&nom=" . urlencode($nombre)); 
     exit();
 }
 
 if (isset($_POST['editar'])) {
-    $cod = trim($_POST['codigo']);
-    $nom = trim($_POST['nombre']);
-    $objInv->modificar($_POST['id_producto'], $cod, $nom, $_POST['descripcion'], $_POST['cantidad'], $_POST['precio_unidad']);
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=edit&cod=" . urlencode($cod) . "&nom=" . urlencode($nom)); 
+    $nombre = trim($_POST['nombre']);
+    $objetoInventario->modificarProducto($_POST['id_producto'], $_POST['codigo'], $nombre, $_POST['descripcion'], $_POST['cantidad'], $_POST['precio_unidad']);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?estado=edit&nom=" . urlencode($nombre)); 
     exit();
 }
 
-// PROCESAR MOVIMIENTO (ENTRADA / SALIDA)
 if (isset($_POST['movimiento'])) {
     $id = $_POST['id_mov'];
-    $cant = $_POST['cant_mov'];
+    $cantidad = $_POST['cant_mov'];
     $tipo = $_POST['tipo_mov'];
-    $nom = $_POST['nom_mov'];
-    $objInv->procesarMovimiento($id, $cant, $tipo);
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=mov&t=$tipo&p=" . urlencode($nom) . "&n=$cant");
+    $nombre = $_POST['nom_mov']; 
+    $objetoInventario->procesarMovimiento($id, $cantidad, $tipo);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?estado=mov&t=$tipo&p=" . urlencode($nombre) . "&n=$cantidad");
     exit();
 }
 
-if (isset($_GET['delete'])) {
-    $objInv->eliminar(intval($_GET['delete']));
-    header("Location: " . $_SERVER['PHP_SELF'] . "?status=del"); 
+if (isset($_GET['eliminar'])) {
+    $objetoInventario->eliminarProducto(intval($_GET['eliminar']));
+    header("Location: " . $_SERVER['PHP_SELF'] . "?estado=del"); 
     exit();
 }
 
-$result = $objInv->listar();
+$resultado = $objetoInventario->listarProductos();
 ?>
 
 <!DOCTYPE html>
@@ -138,13 +135,14 @@ $result = $objInv->listar();
             </tr>
         </thead>
         <tbody>
-            <?php while ($fila = $result->fetch_assoc()): ?>
+            <?php while ($fila = $resultado->fetch_assoc()): ?>
             <tr>
                 <td class="font-weight-bold text-primary"><?= htmlspecialchars($fila['codigo']) ?></td>
+                
                 <td>
-                    <strong><?= htmlspecialchars($fila['nombre']) ?></strong><br>
-                    <small><?= htmlspecialchars($fila['descripcion']) ?></small>
+                    <strong><?= htmlspecialchars($fila['nombre']) ?></strong>
                 </td>
+                
                 <td>
                     <span class="badge badge-pill <?= ($fila['cantidad'] > 5) ? 'badge-success' : 'badge-danger' ?> p-2">
                         <?= $fila['cantidad'] ?> unid.
@@ -219,26 +217,19 @@ $result = $objInv->listar();
         <div class="modal-content border-0">
             <form method="POST">
                 <div class="modal-header bg-warning"><h5 class="text-dark">Movimiento de Stock</h5></div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 text-center">
                     <input type="hidden" name="id_mov" id="mov_id">
                     <input type="hidden" name="nom_mov" id="mov_nom_hidden">
-                    <p class="text-center"><strong id="mov_nom_display"></strong></p>
-                    
+                    <p><strong id="mov_nom_display"></strong></p>
                     <div class="form-group">
-                        <label>Tipo de Movimiento</label>
                         <select name="tipo_mov" class="form-control" required>
                             <option value="entrada">📥 Entrada (+)</option>
                             <option value="salida">📤 Salida (-)</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Cantidad</label>
-                        <input type="number" name="cant_mov" class="form-control" min="1" value="1" required>
-                    </div>
+                    <div class="form-group"><input type="number" name="cant_mov" class="form-control" min="1" value="1" required></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" name="movimiento" class="btn btn-warning btn-block">Procesar</button>
-                </div>
+                <div class="modal-footer"><button type="submit" name="movimiento" class="btn btn-warning btn-block">Procesar</button></div>
             </form>
         </div>
     </div>
@@ -254,7 +245,7 @@ $result = $objInv->listar();
 $(document).ready(function() {
     $('#tablaInventario').DataTable({ language: { "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" } });
 
-    // Llenar Modal Editar
+    // Llenar Editar
     $('#tablaInventario').on('click', '.btnEditar', function() {
         $('#edit_id').val($(this).data('id'));
         $('#edit_cod').val($(this).data('cod'));
@@ -265,7 +256,7 @@ $(document).ready(function() {
         $('#modalEditar').modal('show');
     });
 
-    // Llenar Modal Movimiento
+    // Llenar Movimiento
     $('#tablaInventario').on('click', '.btnMovimiento', function() {
         $('#mov_id').val($(this).data('id'));
         $('#mov_nom_hidden').val($(this).data('nom'));
@@ -273,26 +264,10 @@ $(document).ready(function() {
         $('#modalMov').modal('show');
     });
 
-    // ALERTAS
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get('status');
-    
-    if (status === 'reg') {
-        Swal.fire({ icon: 'success', title: 'Registrado', text: 'Producto: ' + params.get('nom') });
-    } else if (status === 'edit') {
-        Swal.fire({ icon: 'info', title: 'Actualizado', text: 'Cambios en: ' + params.get('nom') });
-    } else if (status === 'mov') {
-        const tipo = params.get('t') === 'entrada' ? 'entrada' : 'salida';
-        const color = params.get('t') === 'entrada' ? '#28a745' : '#dc3545';
-        Swal.fire({ 
-            icon: 'success', 
-            title: 'Movimiento Exitoso', 
-            html: `Se procesó una <b>${tipo}</b> de <b>${params.get('n')}</b> unidades para ${params.get('p')}`,
-            confirmButtonColor: color
-        });
-    } else if (status === 'del') {
-        Swal.fire({ icon: 'error', title: 'Producto Eliminado', timer: 2000, showConfirmButton: false });
-    }
+    const parametros = new URLSearchParams(window.location.search);
+    if (parametros.get('estado') === 'reg') Swal.fire('Éxito', 'Registrado: ' + parametros.get('nom'), 'success');
+    if (parametros.get('estado') === 'edit') Swal.fire('Éxito', 'Actualizado: ' + parametros.get('nom'), 'info');
+    if (parametros.get('estado') === 'mov') Swal.fire('Éxito', 'Movimiento para ' + parametros.get('p'), 'success');
 });
 
 function confirmarEliminar(id, nombre) {
@@ -301,9 +276,8 @@ function confirmarEliminar(id, nombre) {
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
-        confirmButtonText: 'Sí, borrar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => { if (result.isConfirmed) window.location.href = `?delete=${id}`; });
+        confirmButtonText: 'Borrar'
+    }).then((resultado) => { if (resultado.isConfirmed) window.location.href = `?eliminar=${id}`; });
 }
 </script>
 </body>

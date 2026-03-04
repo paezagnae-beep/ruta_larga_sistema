@@ -9,16 +9,14 @@ if (!isset($_SESSION["usuario"])) {
 // 1. CONEXIÓN Y CONSULTA DE DATOS DEL USUARIO
 $mysqli = new mysqli("localhost", "root", "", "proyecto");
 $correoSesion = $_SESSION["usuario"];
-$nombreMostrar = "Usuario"; // Valor por defecto
+$nombreMostrar = "Usuario"; 
 
-// Buscamos el nombre y apellido usando el email de la sesión
 $stmt = $mysqli->prepare("SELECT Nombre, Apellido FROM usuarios WHERE Email = ?");
 $stmt->bind_param("s", $correoSesion);
 $stmt->execute();
 $resultado = $stmt->get_result();
 
 if ($fila = $resultado->fetch_assoc()) {
-    // Si tiene nombre y apellido, los concatenamos. Si están vacíos, usamos el correo.
     if (!empty($fila['Nombre'])) {
         $nombreMostrar = $fila['Nombre'] . " " . $fila['Apellido'];
     } else {
@@ -79,8 +77,9 @@ if ($fila = $resultado->fetch_assoc()) {
             <p class="text-gray-200 uppercase tracking-[0.2em] text-[10px] md:text-xs font-semibold drop-shadow-sm">Panel Administrativo de Control Logístico</p>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-8">
-            <a href="flete.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <a href="flete.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-colors">
                     <i class="ph ph-truck text-4xl text-orange-600 group-hover:text-white"></i>
                 </div>
@@ -91,7 +90,7 @@ if ($fila = $resultado->fetch_assoc()) {
                 </div>
             </a>
 
-            <a href="clientes.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
+            <a href="clientes.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
                     <i class="ph ph-users-three text-4xl text-blue-600 group-hover:text-white"></i>
                 </div>
@@ -102,7 +101,7 @@ if ($fila = $resultado->fetch_assoc()) {
                 </div>
             </a>
             
-            <a href="vehiculo.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
+            <a href="vehiculo.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-600 transition-colors">
                     <i class="ph ph-car-profile text-4xl text-green-600 group-hover:text-white"></i>
                 </div>
@@ -113,7 +112,7 @@ if ($fila = $resultado->fetch_assoc()) {
                 </div>
             </a>
 
-            <a href="chofer.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
+            <a href="chofer.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-colors">
                     <i class="ph ph-identification-card text-4xl text-purple-600 group-hover:text-white"></i>
                 </div>
@@ -124,16 +123,28 @@ if ($fila = $resultado->fetch_assoc()) {
                 </div>
             </a>
 
-            <a href="inventario.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)]">
-                <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-yellow-500 transition-colors">
-                    <i class="ph ph-package text-4xl text-yellow-600 group-hover:text-white"></i>
+            <a href="inventario.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-500 transition-colors">
+                    <i class="ph ph-package text-4xl text-amber-600 group-hover:text-white"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Inventario</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">Control de repuestos, stock de flota y auditoría de recursos.</p>
-                <div class="mt-6 text-yellow-600 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
+                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Inventario de Stock</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Control de repuestos, lubricantes y auditoría de recursos de taller.</p>
+                <div class="mt-6 text-amber-600 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
                     Acceder Módulo <i class="ph ph-caret-double-right"></i>
                 </div>
             </a>
+
+            <a href="estadisticas.php" class="group glass-card p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-cyan-600 transition-colors">
+                    <i class="ph ph-chart-line-up text-4xl text-cyan-600 group-hover:text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 italic">Estadísticas y Reportes</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Visualización de rendimientos, KPI logísticos y análisis de rentabilidad.</p>
+                <div class="mt-6 text-cyan-600 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
+                    Acceder Módulo <i class="ph ph-caret-double-right"></i>
+                </div>
+            </a>
+
         </div>
     </main>
 
