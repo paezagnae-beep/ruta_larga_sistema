@@ -27,7 +27,7 @@ $msg_js = $data['msg_js'];
         *{
             font-family: Georgia, 'Times New Roman', Times, serif;
         }
-        bbody {
+        body {
             font-family: Georgia, 'Times New Roman', Times, serif;
             background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
             url('../../assets/img/fondo.jpg');
