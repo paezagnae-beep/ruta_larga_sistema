@@ -1,63 +1,130 @@
 <?php
 require_once dirname(__DIR__) . "/config/claseconexion.php";
 
-class ReporteFlete extends Conexion
+class Flete extends Conexion
 {
-    private $filtro;
-    public function __construct($filtro = 'todo')
+    private $id, $id_cliente, $id_chofer, $id_vehiculo, $origen, $destino, $estado, $valor, $cancelado, $fecha;
+    
+    public function __construct()
     {
         parent::__construct();
         $this->conectar();
-        $this->filtro = $filtro;
     }
 
-    public function mostrar()
+    // --- SETTERS ---
+    public function setId($v) { $this->id = intval($v); }
+    public function setIdCliente($v) { $this->id_cliente = intval($v); }
+    public function setIdChofer($v) { $this->id_chofer = intval($v); }
+    public function setIdVehiculo($v) { $this->id_vehiculo = intval($v); }
+    
+    public function setOrigen($v) 
+    { 
+        $this->origen = substr(trim($v), 0, 100); 
+    }
+
+    public function setDestino($v) 
+    { 
+        $this->destino = substr(trim($v), 0, 100); 
+    }
+
+    public function setEstado($v) { $this->estado = trim($v); }
+    public function setValor($v) { $this->valor = floatval($v); }
+    public function setCancelado($v) { $this->cancelado = intval($v); }
+    public function setFecha($v) { $this->fecha = $v; }
+
+    // --- MÉTODOS CRUD ---
+
+    /**
+     * Obtiene todos los fletes con los nombres de las relaciones vinculadas
+     */
+    public function listar()
     {
-        switch ($this->filtro) {
-            case 'dia':
-                $sql = "SELECT * FROM fletes WHERE fecha = CURDATE() ORDER BY fecha DESC";
-                break;
-            case 'semana':
-                $sql = "SELECT * FROM fletes WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1) ORDER BY fecha DESC";
-                break;
-            case 'mes':
-                $sql = "SELECT * FROM fletes WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) ORDER
-BY fecha DESC";
-                break;
-            default:
-                $sql = "SELECT * FROM fletes ORDER BY fecha DESC";
-                break;
-        }
+        $sql = "SELECT f.*, c.nombre AS cliente_nom, ch.nombre AS chofer_nom, v.placa AS vehiculo_placa
+                FROM fletes f
+                LEFT JOIN clientes c ON f.id_cliente = c.ID_cliente
+                LEFT JOIN choferes ch ON f.id_chofer = ch.ID_chofer
+                LEFT JOIN vehiculos v ON f.id_vehiculo = v.id_vehiculo
+                ORDER BY f.id DESC";
         return $this->conexion->query($sql);
     }
 
-    public function insertar($fecha, $origen, $destino, $valor)
+    /**
+     * Inserta un nuevo flete
+     */
+    public function insertar()
     {
-        $stmt = $this->conexion->prepare("INSERT INTO fletes (fecha, origen, destino, valor, cancelado) VALUES (?, ?, ?, ?,
-0)");
-        $stmt->bind_param("sssd", $fecha, $origen, $destino, $valor);
-        return $stmt->execute();
+        $stmt = $this->conexion->prepare("INSERT INTO fletes (id_cliente, id_chofer, id_vehiculo, origen, destino, estado, valor, cancelado, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        // Corregido: i=entero, s=cadena, d=decimal (sin espacios en el string de tipos)
+        $stmt->bind_param("iiisssdis", 
+            $this->id_cliente, 
+            $this->id_chofer, 
+            $this->id_vehiculo, 
+            $this->origen, 
+            $this->destino, 
+            $this->estado, 
+            $this->valor, 
+            $this->cancelado, 
+            $this->fecha
+        );
+        
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
     }
 
-    public function actualizar($id, $fecha, $origen, $destino, $valor)
+    /**
+     * Actualiza un flete existente
+     */
+    public function actualizar()
     {
-        $stmt = $this->conexion->prepare("UPDATE fletes SET fecha=?, origen=?, destino=?, valor=? WHERE id=?");
-        $stmt->bind_param("sssdi", $fecha, $origen, $destino, $valor, $id);
-        return $stmt->execute();
+        $stmt = $this->conexion->prepare("UPDATE fletes SET id_cliente=?, id_chofer=?, id_vehiculo=?, origen=?, destino=?, estado=?, valor=?, cancelado=?, fecha=? WHERE id=?");
+        
+        // Corregido string de tipos para bind_param
+        $stmt->bind_param("iiisssdisi", 
+            $this->id_cliente, 
+            $this->id_chofer, 
+            $this->id_vehiculo, 
+            $this->origen, 
+            $this->destino, 
+            $this->estado, 
+            $this->valor, 
+            $this->cancelado, 
+            $this->fecha, 
+            $this->id
+        );
+        
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
     }
 
-    public function eliminar($id)
+    /**
+     * Elimina un flete por su ID
+     */
+    public function eliminar()
     {
         $stmt = $this->conexion->prepare("DELETE FROM fletes WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
+        $stmt->bind_param("i", $this->id);
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
     }
 
-    public function cambiarCancelado($id, $valorActual)
+    // --- MÉTODOS PARA LLENAR SELECTS EN LA VISTA ---
+
+    public function obtenerClientes()
     {
-        $nuevoEstado = ($valorActual == 1) ? 0 : 1;
-        $stmt = $this->conexion->prepare("UPDATE fletes SET cancelado = ? WHERE id = ?");
-        $stmt->bind_param("ii", $nuevoEstado, $id);
-        return $stmt->execute();
+        return $this->conexion->query("SELECT ID_cliente, nombre FROM clientes ORDER BY nombre ASC");
+    }
+
+    public function obtenerChoferes()
+    {
+        return $this->conexion->query("SELECT ID_chofer, nombre FROM choferes ORDER BY nombre ASC");
+    }
+
+    public function obtenerVehiculos()
+    {
+        return $this->conexion->query("SELECT id_vehiculo, placa FROM vehiculos ORDER BY placa ASC");
     }
 }

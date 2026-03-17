@@ -3,7 +3,7 @@ require_once dirname(__DIR__) . "/config/claseconexion.php";
 
 class Vehiculo extends Conexion
 {
-    private $id, $placa, $modelo, $marca;
+    private $id, $placa, $modelo, $marca, $fecha;
 
     public function __construct()
     {
@@ -15,44 +15,51 @@ class Vehiculo extends Conexion
     {
         $this->id = intval($v);
     }
+
     public function setPlaca($v)
     {
         $this->placa = strtoupper(substr(trim($v), 0, 15));
     }
+
     public function setModelo($v)
     {
         $this->modelo = substr(trim($v), 0, 50);
     }
+
     public function setMarca($v)
     {
         $this->marca = substr(trim($v), 0, 50);
     }
 
+    // Nuevo Setter para la fecha de registro
+    public function setFecha($v)
+    {
+        $this->fecha = $v;
+    }
+
     public function listar()
     {
-        // Usamos id_vehiculo en minúsculas como en tu SQL
         return $this->conexion->query("SELECT * FROM vehiculos ORDER BY id_vehiculo DESC");
     }
 
     public function insertar()
     {
-        // Se añade cliente_id con valor 0 por defecto para evitar error de NOT NULL
-        $stmt = $this->conexion->prepare("INSERT INTO vehiculos (placa, modelo, marca, cliente_id) VALUES (?, ?, ?, 0)");
-        $stmt->bind_param("sss", $this->placa, $this->modelo, $this->marca);
+        // Se agrega fecha_registro a la consulta. Se mantiene cliente_id en 0 por defecto.
+        $stmt = $this->conexion->prepare("INSERT INTO vehiculos (placa, modelo, marca, fecha_registro, cliente_id) VALUES (?, ?, ?, ?, 0)");
+        $stmt->bind_param("ssss", $this->placa, $this->modelo, $this->marca, $this->fecha);
         return $stmt->execute();
     }
 
     public function modificar()
     {
-        // Corregido: id_vehiculo en minúsculas
-        $stmt = $this->conexion->prepare("UPDATE vehiculos SET placa=?, modelo=?, marca=? WHERE id_vehiculo=?");
-        $stmt->bind_param("sssi", $this->placa, $this->modelo, $this->marca, $this->id);
+        // Se actualiza también la fecha_registro por si requiere corrección
+        $stmt = $this->conexion->prepare("UPDATE vehiculos SET placa=?, modelo=?, marca=?, fecha_registro=? WHERE id_vehiculo=?");
+        $stmt->bind_param("ssssi", $this->placa, $this->modelo, $this->marca, $this->fecha, $this->id);
         return $stmt->execute();
     }
 
     public function eliminar($id)
     {
-        // Corregido: id_vehiculo en minúsculas
         $stmt = $this->conexion->prepare("DELETE FROM vehiculos WHERE id_vehiculo = ?");
         $stmt->bind_param("i", $id);
         return $stmt->execute();

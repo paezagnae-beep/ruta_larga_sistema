@@ -1,8 +1,9 @@
 <?php
 require_once dirname(__DIR__) . "/config/claseconexion.php";
+
 class Cliente extends Conexion
 {
-    private $id, $rif, $nombre, $telefono;
+    private $id, $rif, $nombre, $telefono, $fecha;
 
     public function __construct()
     {
@@ -26,23 +27,34 @@ class Cliente extends Conexion
     {
         $this->telefono = substr(trim($v), 0, 11);
     }
+    // Nuevo Setter para la fecha
+    public function setFecha($v)
+    {
+        $this->fecha = $v; 
+    }
 
     public function listar()
     {
+        // Se mantiene el orden descendente para ver los más nuevos primero
         return $this->conexion->query("SELECT * FROM clientes ORDER BY ID_cliente DESC");
     }
+
     public function insertar()
     {
-        $stmt = $this->conexion->prepare("INSERT INTO clientes (RIF_cedula, nombre, telefono) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $this->rif, $this->nombre, $this->telefono);
+        // Se agrega fecha_registro a la consulta
+        $stmt = $this->conexion->prepare("INSERT INTO clientes (RIF_cedula, nombre, telefono, fecha_registro) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $this->rif, $this->nombre, $this->telefono, $this->fecha);
         return $stmt->execute();
     }
+
     public function modificar()
     {
-        $stmt = $this->conexion->prepare("UPDATE clientes SET RIF_cedula=?, nombre=?, telefono=? WHERE ID_cliente=?");
-        $stmt->bind_param("sssi", $this->rif, $this->nombre, $this->telefono, $this->id);
+        // Se agrega fecha_registro a la actualización
+        $stmt = $this->conexion->prepare("UPDATE clientes SET RIF_cedula=?, nombre=?, telefono=?, fecha_registro=? WHERE ID_cliente=?");
+        $stmt->bind_param("ssssi", $this->rif, $this->nombre, $this->telefono, $this->fecha, $this->id);
         return $stmt->execute();
     }
+
     public function eliminar($id)
     {
         $stmt = $this->conexion->prepare("DELETE FROM clientes WHERE ID_cliente = ?");
